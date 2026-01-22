@@ -12,7 +12,7 @@ interface Post {
   date: string;
   description: string;
   category: string;
-  coverImage?: string;
+  coverImage: string;
 }
 
 async function getPosts(): Promise<Post[]> {
