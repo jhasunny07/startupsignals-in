@@ -1,47 +1,22 @@
 // src/app/blog/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
 import Link from "next/link";
 import Image from "next/image";
+import { urlFor } from "@/sanity/lib/image";
+import { client } from "@/sanity/lib/client";
+import { allPostsQuery } from "@/sanity/lib/queries";
 
 interface Post {
-  slug: string;
   title: string;
+  slug: string;
   date: string;
   description: string;
   category: string;
-  coverImage: string;
+  coverImage: any;
 }
 
 async function getPosts(): Promise<Post[]> {
-  const postsDirectory = path.join(process.cwd(), "content/posts");
-  
-  // Optional: Add check if directory exists
-  if (!fs.existsSync(postsDirectory)) {
-    return [];
-  }
-
-  const fileNames = fs.readdirSync(postsDirectory);
-
-  const posts = fileNames.map((fileName) => {
-    const slug = fileName.replace(/\.md$/, "");
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
-
-    return {
-      slug,
-      title: data.title,
-      date: data.date,
-      description: data.description,
-      category: data.category,
-      coverImage: data.coverImage || "/images/default-post-cover.jpg", // ← fixed fallback
-    };
-  });
-
-  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return client.fetch(allPostsQuery);
 }
 
 export default async function BlogPage() {
@@ -62,13 +37,13 @@ export default async function BlogPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Main Content - Posts List */}
             <div className="lg:col-span-2 space-y-12">
-              {posts.map((post: Post) => (
+              {posts.map((post) => (
                 <article key={post.slug} className="group">
                   <Link href={`/blog/post/${post.slug}`}>
                     <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all duration-300">
                       <div className="relative h-64">
                         <Image
-                          src={post.coverImage}
+                          src={urlFor(post.coverImage).url() || "/images/default-post-cover.jpg"}
                           alt={post.title}
                           fill
                           className="object-cover transition-transform group-hover:scale-105"
@@ -98,9 +73,8 @@ export default async function BlogPage() {
               ))}
             </div>
 
-            {/* Sidebar */}
+            {/* Sidebar - unchanged */}
             <aside className="space-y-10 lg:sticky lg:top-20 lg:h-fit">
-              {/* Categories */}
               <div className="rounded-2xl border bg-white p-8 shadow-sm">
                 <h3 className="mb-6 text-2xl font-bold text-gray-900">Categories</h3>
                 <ul className="space-y-4">
@@ -127,7 +101,6 @@ export default async function BlogPage() {
                 </ul>
               </div>
 
-              {/* Newsletter Signup */}
               <div className="rounded-2xl border bg-gradient-to-br from-indigo-50 to-blue-50 p-8 shadow-sm text-center">
                 <h3 className="mb-4 text-2xl font-bold text-gray-900">Stay Updated</h3>
                 <p className="mb-6 text-gray-600">
@@ -145,7 +118,6 @@ export default async function BlogPage() {
                 </form>
               </div>
 
-              {/* About */}
               <div className="rounded-2xl border bg-white p-8 shadow-sm">
                 <h3 className="mb-4 text-2xl font-bold text-gray-900">About Sunny</h3>
                 <p className="text-gray-600">

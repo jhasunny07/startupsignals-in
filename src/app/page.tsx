@@ -2,48 +2,25 @@
 import MainLayout from "@/components/layout/MainLayout";
 import Image from "next/image";
 import Link from "next/link";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
+import { latestPostsQuery } from "@/sanity/lib/queries";
 
 interface Post {
-  slug: string;
   title: string;
+  slug: string;
+  date: string;
   description: string;
   category: string;
-  coverImage?: string;
-  date: string;
+  coverImage: any;
 }
 
-async function getLatestPosts(limit = 3): Promise<Post[]> {
-  const postsDirectory = path.join(process.cwd(), "content/posts");
-  if (!fs.existsSync(postsDirectory)) return [];
-
-  const fileNames = fs.readdirSync(postsDirectory);
-  const posts = fileNames.map((fileName) => {
-    const slug = fileName.replace(/\.md$/, "");
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
-
-    return {
-      slug,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      coverImage: data.coverImage || "/images/default-post-cover.jpg",
-      date: data.date,
-    };
-  });
-
-  // Sort by date descending & take latest
-  return posts
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, limit);
+async function getLatestPosts(): Promise<Post[]> {
+  return client.fetch(latestPostsQuery);
 }
 
 export default async function Home() {
-  const latestPosts = await getLatestPosts(3);
+  const latestPosts = await getLatestPosts();
 
   return (
     <MainLayout>
@@ -71,7 +48,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Featured Insights – Dynamic Latest Posts */}
+      {/* Featured Insights – Now from Sanity */}
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <h2 className="text-4xl font-bold tracking-tight text-gray-900 mb-12 text-center">
@@ -91,7 +68,7 @@ export default async function Home() {
                 >
                   <div className="relative h-48">
                     <Image
-                      src={post.coverImage ?? "/images/default-post-cover.jpg"}
+                      src={urlFor(post.coverImage).url() || "/images/default-post-cover.jpg"}
                       alt={post.title}
                       fill
                       className="object-cover transition-transform group-hover:scale-105"
