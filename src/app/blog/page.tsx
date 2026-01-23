@@ -16,11 +16,20 @@ interface Post {
 }
 
 async function getPosts(): Promise<Post[]> {
-  return client.fetch(allPostsQuery);
+  try {
+    const posts = await client.fetch(allPostsQuery);
+    console.log('Sanity posts fetched:', posts.length); // log for Vercel
+    return posts;
+  } catch (error) {
+    console.error('Sanity fetch error on /blog:', error);
+    return []; // fallback – build won't crash
+  }
 }
-
 export default async function BlogPage() {
   const posts = await getPosts();
+  if (posts.length === 0) {
+  console.log('No posts from Sanity – check env vars, query, or Studio');
+}
 
   return (
     <MainLayout>
