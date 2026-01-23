@@ -16,15 +16,19 @@ interface Post {
 }
 
 async function getPosts(): Promise<Post[]> {
+  console.log('[Build Debug] SANITY_PROJECT_ID:', process.env.SANITY_PROJECT_ID);
+  console.log('[Build Debug] SANITY_DATASET:', process.env.SANITY_DATASET);
+
   try {
     const posts = await client.fetch(allPostsQuery);
-    console.log('Sanity posts fetched:', posts.length); // log for Vercel
+    console.log('[Build Debug] Fetched posts count:', posts.length);
     return posts;
   } catch (error) {
-    console.error('Sanity fetch error on /blog:', error);
-    return []; // fallback – build won't crash
+    console.error('[Build Error] Sanity fetch failed:', error);
+    return [];
   }
 }
+
 export default async function BlogPage() {
   const posts = await getPosts();
   if (posts.length === 0) {
