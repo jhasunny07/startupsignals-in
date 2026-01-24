@@ -2,10 +2,11 @@
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
-import { client } from "../../../../sanity/lib/client";
-import { postsByCategoryQuery } from "../../../../sanity/lib/queries";
-import { urlFor } from "../../../../sanity/lib/image";
+
 import { Metadata } from "next";
+import { client } from "../../../sanity/lib/client";
+import { urlFor } from "../../../sanity/lib/image";
+import { postsByCategoryQuery } from "../../../sanity/lib/queries";
 
 interface CategoryPageProps {
   params: { category: string };
