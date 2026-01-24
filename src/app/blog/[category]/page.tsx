@@ -40,11 +40,11 @@ export default async function CategoryPage({ params }: Props) {
                   <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all">
                     <div className="relative h-64">
                       <Image
-                        src={imageUrl}
-                        alt={post.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                      />
+  src={imageUrl ?? "/images/default-post-cover.jpg"} // fallback string ensures type is correct
+  alt={post.title}
+  fill
+  className="object-cover group-hover:scale-105 transition-transform"
+/>
                     </div>
                     <div className="p-6">
                       <h2 className="text-xl font-bold">{post.title}</h2>
