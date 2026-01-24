@@ -16,6 +16,9 @@ interface Post {
   coverImage?: any;
 }
 
+// ISR: This page will be revalidated every 60 seconds
+export const revalidate = 60; // seconds
+
 async function getPosts(): Promise<Post[]> {
   try {
     const posts = await client.fetch(allPostsQuery);
@@ -45,11 +48,7 @@ export default async function BlogPage() {
             {/* Posts */}
             <div className="lg:col-span-2 space-y-12">
               {posts.map((post) => {
-                // ✅ SAFE IMAGE RESOLUTION (THIS FIXES YOUR BUILD)
-                const imageUrl =
-                  post.coverImage
-                    ? urlFor(post.coverImage)?.url()
-                    : null;
+                const imageUrl = post.coverImage ? urlFor(post.coverImage)?.url() : null;
 
                 return (
                   <article key={post.slug} className="group">
@@ -92,7 +91,7 @@ export default async function BlogPage() {
               })}
             </div>
 
-            {/* Sidebar (unchanged) */}
+            {/* Sidebar */}
             <aside className="space-y-10 lg:sticky lg:top-20">
               <div className="rounded-2xl border bg-white p-8 shadow-sm">
                 <h3 className="mb-6 text-2xl font-bold">Categories</h3>
