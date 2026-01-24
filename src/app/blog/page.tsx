@@ -1,111 +1,137 @@
+// src/app/blog/[category]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
+import { client } from "../../../../sanity/lib/client";
+import { postsByCategoryQuery } from "../../../../sanity/lib/queries";
+import { urlFor } from "../../../../sanity/lib/image";
+import { Metadata } from "next";
 
-import { client } from "../../../sanity/lib/client";
-import { allPostsQuery } from "../../../sanity/lib/queries";
-import { urlFor } from "../../../sanity/lib/image";
+interface CategoryPageProps {
+  params: { category: string };
+}
 
 interface Post {
   title: string;
   slug: string;
   date: string;
-  _updatedAt: string;
   description: string;
-  category: string;
+  category?: string;
   coverImage?: any;
 }
 
-export const revalidate = 10; // ISR: regenerate page every 10 seconds
+// Generate metadata for SEO
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const category = params.category ?? "unknown";
+  const capitalized = category ? category.charAt(0).toUpperCase() + category.slice(1) : "Unknown";
 
-async function getPosts(): Promise<Post[]> {
-  try {
-    const posts = await client.fetch(allPostsQuery);
-    return posts ?? [];
-  } catch (error) {
-    console.error("[Sanity Fetch Error]", error);
-    return [];
-  }
+  return {
+    title: `${capitalized} | Startup Blog`,
+    description: `Latest insights, lessons, and strategies in ${capitalized.toLowerCase()} for founders and builders.`,
+    openGraph: {
+      title: `${capitalized} Insights`,
+      description: `Explore articles on ${capitalized.toLowerCase()} in startups and growth.`,
+    },
+  };
 }
 
-export default async function BlogPage() {
-  const posts = await getPosts();
+// Fetch posts safely by category
+async function getPostsByCategory(categorySlug: string): Promise<Post[]> {
+  if (!categorySlug) return [];
+  const posts = await client.fetch(postsByCategoryQuery, { categorySlug });
+  return posts ?? [];
+}
+
+// Generate static paths for Next.js
+export async function generateStaticParams() {
+  const allPosts = await client.fetch(`*[_type=="post"]{ "categorySlug": category->slug.current }`);
+  const categories = Array.from(new Set(allPosts.map((p: any) => p.categorySlug).filter(Boolean)));
+  return categories.map((cat) => ({ category: cat }));
+}
+
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const category = params.category ?? "unknown";
+  const posts = await getPostsByCategory(category);
+
+  const capitalized = category ? category.charAt(0).toUpperCase() + category.slice(1) : "Unknown";
+
+  if (!posts || posts.length === 0) {
+    return (
+      <MainLayout>
+        <div className="py-32 text-center">
+          <h1 className="text-4xl font-bold">No posts in "{capitalized}" yet</h1>
+          <Link href="/blog" className="mt-6 inline-block text-indigo-600 hover:underline">
+            Back to Blog
+          </Link>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <h1 className="mb-12 text-5xl font-bold text-center text-gray-900">
-          Startup & Growth Insights
-        </h1>
+        {/* Header */}
+        <header className="mb-16 text-center">
+          <h1 className="mb-6 text-5xl font-bold tracking-tight text-gray-900">
+            {capitalized} Insights
+          </h1>
+          <p className="mx-auto max-w-3xl text-xl text-gray-600 leading-relaxed">
+            Practical advice, real-world lessons, and strategies for founders navigating {category.toLowerCase()}.
+          </p>
+        </header>
 
-        {posts.length === 0 ? (
-          <div className="text-center py-20 text-gray-600">
-            <p className="text-xl">No posts published yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Posts */}
-            <div className="lg:col-span-2 space-y-12">
-              {posts.map((post) => {
-                const imageUrl = post.coverImage
-                  ? urlFor(post.coverImage)?.url() + `?v=${new Date(post._updatedAt).getTime()}`
-                  : "/images/default-post-cover.jpg";
+        {/* Posts Grid */}
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => {
+            const imageUrl = post.coverImage ? urlFor(post.coverImage)?.url() : "/images/default-post-cover.jpg";
 
-                return (
-                  <article key={post.slug} className="group">
-                    <Link href={`/blog/post/${post.slug}`}>
-                      <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all">
-                        <div className="relative h-64">
-                          <Image
-                            src={imageUrl}
-                            alt={post.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-
-                        <div className="p-8">
-                          <div className="mb-4 inline-block rounded-full bg-indigo-100 px-4 py-1.5 text-sm font-medium text-indigo-700">
-                            {post.category}
-                          </div>
-
-                          <h2 className="mb-4 text-3xl font-bold text-gray-900 group-hover:text-indigo-600">
-                            {post.title}
-                          </h2>
-
-                          <p className="mb-6 text-lg text-gray-600 line-clamp-3">
-                            {post.description}
-                          </p>
-
-                          <time className="text-sm text-gray-500">
-                            {new Date(post.date).toLocaleDateString("en-US", {
+            return (
+              <article key={post.slug} className="group">
+                <Link href={`/blog/post/${post.slug}`}>
+                  <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all duration-300">
+                    <div className="relative h-64">
+                      <Image
+                        src={imageUrl!}
+                        alt={post.title}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-8">
+                      <div className="mb-4 inline-block rounded-full bg-indigo-100 px-4 py-1.5 text-sm font-medium text-indigo-700">
+                        {post.category ?? "Uncategorized"}
+                      </div>
+                      <h2 className="mb-4 text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        {post.title}
+                      </h2>
+                      <p className="mb-6 text-lg text-gray-600 line-clamp-3">{post.description}</p>
+                      <time className="text-sm text-gray-500">
+                        {post.date
+                          ? new Date(post.date).toLocaleDateString("en-US", {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                            })}
-                          </time>
-                        </div>
-                      </div>
-                    </Link>
-                  </article>
-                );
-              })}
-            </div>
+                            })
+                          : "Unknown date"}
+                      </time>
+                    </div>
+                  </div>
+                </Link>
+              </article>
+            );
+          })}
+        </div>
 
-            {/* Sidebar */}
-            <aside className="space-y-10 lg:sticky lg:top-20">
-              <div className="rounded-2xl border bg-white p-8 shadow-sm">
-                <h3 className="mb-6 text-2xl font-bold">Categories</h3>
-                <ul className="space-y-4">
-                  <li><Link href="/blog/startups">Startups</Link></li>
-                  <li><Link href="/blog/funding">Funding</Link></li>
-                  <li><Link href="/blog/product">Product</Link></li>
-                  <li><Link href="/blog/growth">Growth</Link></li>
-                </ul>
-              </div>
-            </aside>
-          </div>
-        )}
+        {/* CTA / Explore All */}
+        <div className="mt-16 text-center">
+          <Link
+            href="/blog"
+            className="inline-flex items-center rounded-full bg-indigo-600 px-10 py-5 text-lg font-semibold text-white hover:bg-indigo-700 transition"
+          >
+            Explore All Topics →
+          </Link>
+        </div>
       </div>
     </MainLayout>
   );
