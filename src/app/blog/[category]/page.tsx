@@ -1,5 +1,9 @@
 // src/app/blog/[category]/page.tsx
 
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";

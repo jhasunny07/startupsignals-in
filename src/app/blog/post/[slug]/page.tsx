@@ -1,4 +1,7 @@
 // src/app/blog/post/[slug]/page.tsx
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 
 import MainLayout from "@/components/layout/MainLayout";
 import Image from "next/image";
