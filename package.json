@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "dev:studio": "npx dotenv -e .env.local -- cd src/sanity && sanity dev",
+    "dev:studio": "sanity dev --cwd sanity",
+    "deploy:studio": "cd sanity && sanity deploy",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:studio\""
   },
   "dependencies": {
