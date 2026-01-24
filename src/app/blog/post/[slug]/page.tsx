@@ -1,4 +1,3 @@
-// src/app/blog/[slug]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import fs from "fs";
 import path from "path";
@@ -10,22 +9,13 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 interface PostProps {
-  params: Promise<{ slug: string }>;   // ← Add Promise here
+  params: { slug: string };
 }
 
-// Generate metadata for SEO
+// Generate metadata
 export async function generateMetadata({ params }: PostProps): Promise<Metadata> {
-    const resolvedParams = await params; 
-    const { slug } = resolvedParams;
- const post = await getPostBySlug(slug);
-
-
-  if (!post) {
-    return {
-      title: "Post Not Found",
-    };
-  }
-
+  const post = await getPostBySlug(params.slug);
+  if (!post) return { title: "Post Not Found" };
   return {
     title: post.title,
     description: post.description,
@@ -39,34 +29,16 @@ export async function generateMetadata({ params }: PostProps): Promise<Metadata>
   };
 }
 
+// Read post content from Markdown
 async function getPostBySlug(slug: string) {
   const postsDirectory = path.join(process.cwd(), "content/posts");
   const fullPath = path.join(postsDirectory, `${slug}.md`);
-
-  // ← Add these debug lines
-  console.log("=== SINGLE POST DEBUG ===");
-  console.log("Requested slug:", slug);
-  console.log("Expected file path:", fullPath);
-  console.log("File exists?", fs.existsSync(fullPath));
-  if (fs.existsSync(postsDirectory)) {
-    console.log("All files in posts dir:", fs.readdirSync(postsDirectory));
-  } else {
-    console.log("Posts directory does NOT exist!");
-  }
-
-  if (!fs.existsSync(fullPath)) {
-    return null;
-  }
+  if (!fs.existsSync(fullPath)) return null;
 
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
 
-  const processedContent = await remark()
-    .use(html)
-    .process(content);
-  const contentHtml = processedContent.toString();
-
-  // Rough reading time estimate (avg 200-250 words/min)
+  const contentHtml = (await remark().use(html).process(content)).toString();
   const wordCount = content.split(/\s+/).length;
   const readingTime = Math.ceil(wordCount / 225);
 
@@ -83,24 +55,21 @@ async function getPostBySlug(slug: string) {
   };
 }
 
+// Generate all slugs for static rendering
 async function getAllSlugs() {
   const postsDirectory = path.join(process.cwd(), "content/posts");
-  const fileNames = fs.readdirSync(postsDirectory);
-  return fileNames.map((fileName) => fileName.replace(/\.md$/, ""));
+  const files = fs.existsSync(postsDirectory) ? fs.readdirSync(postsDirectory) : [];
+  return files.map((file) => file.replace(/\.md$/, ""));
 }
 
-// For static generation (better perf/SEO)
 export async function generateStaticParams() {
   const slugs = await getAllSlugs();
   return slugs.map((slug) => ({ slug }));
 }
 
+// Post page component
 export default async function PostPage({ params }: PostProps) {
-  const resolvedParams = await params;                // ← Await here
-  const { slug } = resolvedParams;
-
-  const post = await getPostBySlug(slug);
-
+  const post = await getPostBySlug(params.slug);
   if (!post) {
     return (
       <MainLayout>
@@ -117,20 +86,10 @@ export default async function PostPage({ params }: PostProps) {
   return (
     <MainLayout>
       <article className="mx-auto max-w-4xl px-6 py-16 lg:px-8">
-        {/* Cover Image */}
-        {post.coverImage && (
-          <div className="relative mb-12 h-96 overflow-hidden rounded-2xl shadow-2xl">
-            <Image
-              src={post.coverImage}
-              alt={post.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-        )}
+        <div className="relative mb-12 h-96 overflow-hidden rounded-2xl shadow-2xl">
+          <Image src={post.coverImage} alt={post.title} fill className="object-cover" priority />
+        </div>
 
-        {/* Header */}
         <header className="mb-12 text-center">
           <div className="mb-4 inline-block rounded-full bg-indigo-100 px-5 py-2 text-sm font-medium text-indigo-700">
             {post.category}
@@ -140,11 +99,7 @@ export default async function PostPage({ params }: PostProps) {
           </h1>
           <div className="flex items-center justify-center gap-6 text-gray-600">
             <time dateTime={post.date}>
-              {new Date(post.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </time>
             <span>•</span>
             <span>{post.readingTime} min read</span>
@@ -153,18 +108,13 @@ export default async function PostPage({ params }: PostProps) {
           </div>
         </header>
 
-        {/* Content */}
         <div
-          className="prose prose-lg prose-indigo mx-auto max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:pl-6 prose-code:bg-gray-100 prose-code:p-1 prose-code:before:content-none prose-code:after:content-none"
+          className="prose prose-lg prose-indigo mx-auto max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 hover:prose-a:underline"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}
         />
 
-        {/* Footer / Back */}
         <footer className="mt-16 border-t pt-10 text-center">
-          <Link
-            href="/blog"
-            className="inline-flex items-center rounded-full bg-gray-100 px-8 py-4 text-lg font-medium text-gray-700 hover:bg-gray-200 transition"
-          >
+          <Link href="/blog" className="inline-flex items-center rounded-full bg-gray-100 px-8 py-4 text-lg font-medium text-gray-700 hover:bg-gray-200 transition">
             ← Back to All Posts
           </Link>
         </footer>

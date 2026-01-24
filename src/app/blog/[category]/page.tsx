@@ -1,20 +1,18 @@
-// src/app/blog/[category]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
 import Link from "next/link";
 import Image from "next/image";
+import { urlFor } from "../../../../sanity/lib/image";
 import { Metadata } from "next";
+import { client } from "../../../../sanity/lib/client";
+import { postsByCategoryQuery } from "../../../../sanity/lib/queries";
 
-interface CategoryProps {
-  params: Promise<{ category: string }>;
+interface CategoryPageProps {
+  params: { category: string };
 }
 
-export async function generateMetadata({ params }: CategoryProps): Promise<Metadata> {
-  const resolvedParams = await params;
-  const { category } = resolvedParams;
-
+// Generate metadata for SEO
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const category = params.category || "unknown";
   const capitalized = category.charAt(0).toUpperCase() + category.slice(1);
 
   return {
@@ -27,67 +25,31 @@ export async function generateMetadata({ params }: CategoryProps): Promise<Metad
   };
 }
 
-async function getPostsByCategory(category: string) {
-  const postsDirectory = path.join(process.cwd(), "content/posts");
-  const fileNames = fs.readdirSync(postsDirectory);
-
-  const posts = fileNames
-    .map((fileName) => {
-      const slug = fileName.replace(/\.md$/, "");
-      const fullPath = path.join(postsDirectory, fileName);
-      const fileContents = fs.readFileSync(fullPath, "utf8");
-      const { data } = matter(fileContents);
-
-      if (data.category?.toLowerCase() === category.toLowerCase()) {
-        return {
-          slug,
-          title: data.title,
-          date: data.date,
-          description: data.description,
-          category: data.category,
-          coverImage: data.coverImage || "/images/default-post-cover.jpg",
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  return posts.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+// Fetch posts from Sanity by category
+async function getPostsByCategory(categorySlug: string) {
+  if (!categorySlug) return [];
+  const posts = await client.fetch(postsByCategoryQuery, { categorySlug });
+  return posts || [];
 }
 
-async function getAllCategories() {
-  const postsDirectory = path.join(process.cwd(), "content/posts");
-  const fileNames = fs.readdirSync(postsDirectory);
-  const categories = new Set<string>();
-
-  fileNames.forEach((fileName) => {
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
-    if (data.category) {
-      categories.add(data.category.toLowerCase());
-    }
-  });
-
-  return Array.from(categories);
-}
-
+// Generate static params for Next.js (prerendering)
 export async function generateStaticParams() {
-  const categories = await getAllCategories();
+  const allPosts = await client.fetch(`*[_type=="post"]{ "categorySlug": category->slug.current }`);
+  const categories = Array.from(new Set(allPosts.map((p: any) => p.categorySlug).filter(Boolean)));
   return categories.map((cat) => ({ category: cat }));
 }
 
-export default async function CategoryPage({ params }: CategoryProps) {
-  const resolvedParams = await params;
-  const { category } = resolvedParams;
-
+// Page component
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const category = params.category || "unknown";
   const posts = await getPostsByCategory(category);
+  const capitalized = category.charAt(0).toUpperCase() + category.slice(1);
 
-  if (posts.length === 0) {
+  if (!posts || posts.length === 0) {
     return (
       <MainLayout>
         <div className="py-32 text-center">
-          <h1 className="text-4xl font-bold">No posts in "{category}" yet</h1>
+          <h1 className="text-4xl font-bold">No posts in "{capitalized}" yet</h1>
           <Link href="/blog" className="mt-6 inline-block text-indigo-600 hover:underline">
             Back to Blog
           </Link>
@@ -96,52 +58,50 @@ export default async function CategoryPage({ params }: CategoryProps) {
     );
   }
 
-  const capitalized = category.charAt(0).toUpperCase() + category.slice(1);
-
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        {/* SEO Landing Page Header */}
         <header className="mb-16 text-center">
           <h1 className="mb-6 text-5xl font-bold tracking-tight text-gray-900">
             {capitalized} Insights
           </h1>
           <p className="mx-auto max-w-3xl text-xl text-gray-600 leading-relaxed">
-            Practical advice, real-world lessons, and strategies for founders navigating the world of {category.toLowerCase()}. 
-            From early-stage challenges to scaling tactics — dive into stories that help you build better and faster.
+            Practical advice, real-world lessons, and strategies for founders navigating {category.toLowerCase()}.
           </p>
         </header>
 
-        {/* Posts Grid (reuse similar style from /blog) */}
-       <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
-  {posts.map((post: any) => (
-    <article key={post.slug} className="group">
-      <Link href={`/blog/post/${post.slug}`}>   {/* ← FIXED HERE */}
-        <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all duration-300">
-          <div className="relative h-64">
-            <Image
-              src={post.coverImage}
-              alt={post.title}
-              fill
-              className="object-cover transition-transform group-hover:scale-105"
-            />
-          </div>
-          <div className="p-8">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-              {post.title}
-            </h2>
-            <p className="mb-6 text-lg text-gray-600 line-clamp-3">{post.description}</p>
-            <time className="text-sm text-gray-500">
-              {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-            </time>
-          </div>
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post: any) => (
+            <article key={post.slug} className="group">
+              <Link href={`/blog/post/${post.slug}`}>
+                <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all duration-300">
+                  <div className="relative h-64">
+                    <Image
+                      src={urlFor(post.coverImage)?.url() || "/images/default-post-cover.jpg"}
+                      alt={post.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-8">
+                    <h2 className="mb-4 text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                      {post.title}
+                    </h2>
+                    <p className="mb-6 text-lg text-gray-600 line-clamp-3">{post.description}</p>
+                    <time className="text-sm text-gray-500">
+                      {new Date(post.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </time>
+                  </div>
+                </div>
+              </Link>
+            </article>
+          ))}
         </div>
-      </Link>
-    </article>
-  ))}
-</div>
 
-        {/* Internal Linking / CTA */}
         <div className="mt-16 text-center">
           <Link
             href="/blog"
