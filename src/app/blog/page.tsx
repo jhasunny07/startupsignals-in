@@ -1,4 +1,3 @@
-// src/app/blog/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,13 +10,13 @@ interface Post {
   title: string;
   slug: string;
   date: string;
+  _updatedAt: string;
   description: string;
   category: string;
   coverImage?: any;
 }
 
-// ISR: This page will be revalidated every 60 seconds
-export const revalidate = 60; // seconds
+export const revalidate = 10; // ISR: regenerate page every 10 seconds
 
 async function getPosts(): Promise<Post[]> {
   try {
@@ -35,7 +34,7 @@ export default async function BlogPage() {
   return (
     <MainLayout>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <h1 className="mb-12 text-5xl font-bold tracking-tight text-gray-900 text-center">
+        <h1 className="mb-12 text-5xl font-bold text-center text-gray-900">
           Startup & Growth Insights
         </h1>
 
@@ -48,7 +47,9 @@ export default async function BlogPage() {
             {/* Posts */}
             <div className="lg:col-span-2 space-y-12">
               {posts.map((post) => {
-                const imageUrl = post.coverImage ? urlFor(post.coverImage)?.url() : null;
+                const imageUrl = post.coverImage
+                  ? urlFor(post.coverImage)?.url() + `?v=${new Date(post._updatedAt).getTime()}`
+                  : "/images/default-post-cover.jpg";
 
                 return (
                   <article key={post.slug} className="group">
@@ -56,7 +57,7 @@ export default async function BlogPage() {
                       <div className="overflow-hidden rounded-2xl border bg-white shadow-md hover:shadow-xl transition-all">
                         <div className="relative h-64">
                           <Image
-                            src={imageUrl ?? "/images/default-post-cover.jpg"}
+                            src={imageUrl}
                             alt={post.title}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform"
