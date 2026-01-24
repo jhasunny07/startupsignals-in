@@ -24,14 +24,23 @@ interface Post {
   body?: any[];
 }
 
-// Generate metadata safely
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const slug = params.slug;
-  const post: Post | null = await client.fetch(postBySlugQuery, { slug });
+// Fetch the post safely
+async function getPost(slug: string): Promise<Post | null> {
+  if (!slug) return null;
+  try {
+    const post = await client.fetch(postBySlugQuery, { slug });
+    return post ?? null;
+  } catch (err) {
+    console.error("[Sanity Fetch Error]", err);
+    return null;
+  }
+}
 
+// Generate metadata
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  const post = await getPost(params.slug);
   if (!post) return { title: "Post Not Found" };
 
-  // ✅ Safe OpenGraph image
   const ogImage = post.coverImage ? urlFor(post.coverImage)?.url() : undefined;
 
   return {
@@ -47,24 +56,15 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   };
 }
 
-// Fetch the post for rendering
-async function getPost(slug: string): Promise<Post | null> {
-  try {
-    const post = await client.fetch(postBySlugQuery, { slug });
-    return post ?? null;
-  } catch (err) {
-    console.error("[Sanity Fetch Error]", err);
-    return null;
-  }
-}
-
-// Generate static params for SSG
+// Generate all slugs for SSG
 export async function generateStaticParams() {
-  const allPosts = await client.fetch(`*[_type=="post"]{ "slug": slug.current }`);
-  return allPosts.map((p: any) => ({ slug: p.slug }));
+  const allPosts: { slug: { current: string } }[] = await client.fetch(
+    `*[_type=="post"]{ "slug": slug.current }`
+  );
+  return allPosts.map((p) => ({ slug: p.slug }));
 }
 
-// Post Page Component
+// Post page
 export default async function PostPage({ params }: PostPageProps) {
   const post = await getPost(params.slug);
 
@@ -86,12 +86,10 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <MainLayout>
       <article className="mx-auto max-w-4xl px-6 py-16 lg:px-8">
-        {/* Cover Image */}
         <div className="relative mb-12 h-96 overflow-hidden rounded-2xl shadow-2xl">
           <Image src={imageUrl!} alt={post.title} fill className="object-cover" priority />
         </div>
 
-        {/* Header */}
         <header className="mb-12 text-center">
           <div className="mb-4 inline-block rounded-full bg-indigo-100 px-5 py-2 text-sm font-medium text-indigo-700">
             {post.category ?? "Uncategorized"}
@@ -101,11 +99,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </h1>
           <div className="flex items-center justify-center gap-6 text-gray-600">
             <time dateTime={post.date}>
-              {post.date ? new Date(post.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              }) : "Unknown date"}
+              {post.date ? new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "Unknown date"}
             </time>
             {post.author && <>
               <span>•</span>
@@ -114,13 +108,11 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
         </header>
 
-        {/* Body */}
         <div
           className="prose prose-lg prose-indigo mx-auto max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-indigo-600 hover:prose-a:underline"
-          dangerouslySetInnerHTML={{ __html: post.body?.map((block: any) => block?.children?.map((c: any) => c.text).join(" ")).join("\n") ?? "" }}
+          dangerouslySetInnerHTML={{ __html: post.body?.map((block) => block?.children?.map((c: any) => c.text).join(" ")).join("\n") ?? "" }}
         />
 
-        {/* Footer */}
         <footer className="mt-16 border-t pt-10 text-center">
           <Link href="/blog" className="inline-flex items-center rounded-full bg-gray-100 px-8 py-4 text-lg font-medium text-gray-700 hover:bg-gray-200 transition">
             ← Back to All Posts
