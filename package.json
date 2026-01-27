@@ -12,6 +12,7 @@
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:studio\""
   },
   "dependencies": {
+    "@portabletext/react": "^6.0.2",
     "@sanity/cli": "^5.5.0",
     "@sanity/code-input": "^7.0.6",
     "@sanity/icons": "^3.7.4",
