@@ -47,3 +47,10 @@ export const latestPostsQuery = groq`
     coverImage,
   }
 `
+
+export const allCategoriesQuery = groq`
+  *[_type == "category"] | order(title asc) {
+    title,
+    "slug": slug.current
+  }
+`;
