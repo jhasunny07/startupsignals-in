@@ -1,12 +1,18 @@
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
 // src/app/blog/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
-import { client } from "../../sanity/lib/client";
-import { allPostsQuery } from "../../sanity/lib/queries";
-import { urlFor } from "../../sanity/lib/image";
+import { client } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
+import { allPostsQuery } from "@/lib/sanity/queries";
 
-export const dynamic = "force-dynamic"; // ensures server fetch every request
+
+
 
 interface Post {
   title: string;

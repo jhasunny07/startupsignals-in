@@ -1,12 +1,20 @@
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
+
 // src/app/blog/post/[slug]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
+import { client } from "@/lib/sanity/client";
+import { urlFor } from "@/lib/sanity/image";
+import { postBySlugQuery } from "@/lib/sanity/queries";
 import Image from "next/image";
 import Link from "next/link";
-import { client } from "../../../../../sanity/lib/client";
-import { urlFor } from "../../../../../sanity/lib/image";
-import { postBySlugQuery } from "../../../../../sanity/lib/queries";
 
-export const dynamic = "force-dynamic"; // ensures live fetch every request
+
+
+
 
 interface Post {
   title: string;
