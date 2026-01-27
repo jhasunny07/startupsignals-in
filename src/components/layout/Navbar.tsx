@@ -68,9 +68,11 @@ const trendingArticles = [
   { title: "Fintech's New Wave", slug: "fintech-trends", tag: "New" },
 ];
 
+
 export default function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -109,9 +111,13 @@ export default function Navbar() {
           </div>
 
           {/* Right Nav */}
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2"
+  onMouseEnter={() => setIsMenuOpen(true)} 
+  onMouseLeave={() => setIsMenuOpen(false)}
+>
             <nav className="hidden lg:flex items-center gap-1">
-              <DropdownMenu hoverable>
+              <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-4 hover:bg-slate-100 font-medium group">
                     Explore 
