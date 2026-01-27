@@ -1,24 +1,27 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // src/app/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
 import { latestPostsQuery } from "@/lib/sanity/queries";
+
 import Image from "next/image";
 import Link from "next/link";
-
 
 interface Post {
   title: string;
   slug: string;
-  date: string;
-  description: string;
-  category: string;
-  coverImage: any | null;
+  date?: string;
+  description?: string;
+  category?: string;
+  coverImage?: any | null;
 }
 
 async function getLatestPosts(): Promise<Post[]> {
-   const client = getSanityClient();
-  return client.fetch(latestPostsQuery);
+  const client = getSanityClient();
+  return (await client.fetch(latestPostsQuery)) ?? [];
 }
 
 export default async function Home() {
@@ -30,10 +33,12 @@ export default async function Home() {
       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-24 sm:py-32">
         <div className="relative mx-auto max-w-7xl px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-            Insights for <span className="text-indigo-600">Founders</span> & Builders
+            Insights for{" "}
+            <span className="text-indigo-600">Founders</span> & Builders
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-xl text-gray-700">
-            Honest stories, hard lessons, and tactical advice on startups, funding, product, and growth.
+            Honest stories, hard lessons, and tactical advice on startups,
+            funding, product, and growth.
           </p>
           <div className="mt-10">
             <Link
@@ -60,8 +65,9 @@ export default async function Home() {
           ) : (
             <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
               {latestPosts.map((post) => {
+                const imageBuilder = urlFor(post.coverImage);
                 const imageUrl =
-                  urlFor(post.coverImage)?.url() ??
+                  imageBuilder?.url() ??
                   "/images/default-post-cover.jpg";
 
                 return (
@@ -80,7 +86,7 @@ export default async function Home() {
 
                     <div className="p-6">
                       <span className="inline-block mb-3 rounded-full bg-indigo-100 px-4 py-1 text-sm text-indigo-700">
-                        {post.category}
+                        {post.category ?? "Uncategorized"}
                       </span>
 
                       <h3 className="text-xl font-semibold group-hover:text-indigo-600">
