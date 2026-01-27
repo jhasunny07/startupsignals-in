@@ -1,6 +1,6 @@
 // src/app/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
-import { client } from "@/lib/sanity/client";
+import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
 import { latestPostsQuery } from "@/lib/sanity/queries";
 import Image from "next/image";
@@ -17,6 +17,7 @@ interface Post {
 }
 
 async function getLatestPosts(): Promise<Post[]> {
+   const client = getSanityClient();
   return client.fetch(latestPostsQuery);
 }
 
