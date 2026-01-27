@@ -1,13 +1,19 @@
+// src/lib/sanity/client.ts
 import { createClient } from "next-sanity";
 
-export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
-  apiVersion: "2024-01-01",
+export function getSanityClient() {
+  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
 
-  // 🚨 THIS IS CRITICAL
-  useCdn: false,
+  if (!projectId || !dataset) {
+    throw new Error("Sanity environment variables are missing");
+  }
 
-  // ensures no build-time caching
-  perspective: "published",
-});
+  return createClient({
+    projectId,
+    dataset,
+    apiVersion: "2024-01-01",
+    useCdn: false,
+    perspective: "published",
+  });
+}
