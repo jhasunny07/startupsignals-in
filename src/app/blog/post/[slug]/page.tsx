@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// src/app/blog/post/[slug]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
 import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
@@ -10,163 +9,143 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
+import {
+  ArrowLeft,
+  Megaphone,
+  ExternalLink,
+  Clock,
+  Share2,
+  TrendingUp,
+} from "lucide-react";
 
-// Safe image helper (same as category page)
-function getCoverImageUrl(coverImage: any, width = 1920, height = 1080): string {
-  if (!coverImage) return "/images/default-post-cover.jpg";
-  const builder = urlFor(coverImage);
-  if (!builder) return "/images/default-post-cover.jpg";
-  return builder.width(width).height(height).url() ?? "/images/default-post-cover.jpg";
-}
-
-interface Post {
-  title: string;
-  slug: string;
-  date: string;
-  description: string;
-  category?: string;
-  author?: string;
-  coverImage?: any;
-  body?: any[]; // Portable Text blocks
-}
-
-interface Props {
+export default async function PostPage({
+  params,
+}: {
   params: Promise<{ slug: string }>;
-}
+}) {
+  const { slug } = await params;
+  const client = getSanityClient();
+  const post = await client.fetch(postBySlugQuery, { slug });
 
-async function getPost(slug: string): Promise<Post | null> {
-  if (!slug) return null;
-  try {
-    const client = getSanityClient();
-    const post = await client.fetch(postBySlugQuery, { slug });
-    return post ?? null;
-  } catch (err) {
-    console.error("[Sanity Fetch Error]", err);
-    return null;
-  }
-}
+  if (!post) notFound();
 
-export default async function PostPage({ params }: Props) {
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
-
-  const post = await getPost(slug);
-
-  if (!post) {
-    notFound();
-  }
-
-  const imageUrl = getCoverImageUrl(post.coverImage, 1920, 1080);
-
-  const category = post.category ?? "Uncategorized";
-  const author = post.author ?? "Anonymous";
-  const date = post.date
-    ? new Date(post.date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "Unknown date";
+const imageBuilder = urlFor(post.coverImage);
+const imageUrl = imageBuilder ? imageBuilder.url() : null;
 
   return (
     <MainLayout>
-      <main className="bg-white min-h-screen">
-        {/* Hero Section */}
-        <div className="relative h-[70vh] min-h-[500px] w-full overflow-hidden">
-          <Image
-            src={imageUrl}
-            alt={post.title}
-            fill
-            className="object-cover brightness-[0.85]"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+      <main className="bg-[#f9fafb] min-h-screen pb-20 font-sans">
+        {/* --- 1. HERO IMAGE --- */}
+        <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              fill
+              alt={post.title}
+              className="object-cover opacity-60"
+              priority
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+          <div className="absolute top-10 left-10">
+            <Link
+              href="/blog"
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/80 hover:text-white transition-all"
+            >
+              <ArrowLeft className="h-4 w-4" /> Return to Archive
+            </Link>
+          </div>
+        </section>
 
-          <div className="absolute inset-0 flex items-end">
-            <div className="mx-auto w-full max-w-5xl px-6 pb-16 lg:px-8">
-              {/* Category Badge */}
-              <div className="mb-6">
-                <span className="inline-block rounded-full bg-indigo-600/90 px-5 py-2 text-sm font-semibold uppercase tracking-wide text-white shadow-md">
-                  {category}
+        {/* --- 2. TITLE CARD --- */}
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="relative -mt-32 md:-mt-48 z-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+              <div className="lg:col-span-8 bg-white p-8 md:p-16 rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100">
+                <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md mb-6">
+                  {post.category || "Intel"}
                 </span>
+
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] text-slate-900 mb-8">
+                  {post.title}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-slate-50">
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-black text-slate-900">
+                      {post.authorName || "Editorial"}
+                    </p>
+                  </div>
+
+                  <div className="h-1 w-1 rounded-full bg-slate-200" />
+
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    <Clock className="h-4 w-4" /> 8 Min Read
+                  </div>
+                </div>
               </div>
 
-              {/* Title */}
-              <h1 className="text-4xl font-bold leading-tight text-white drop-shadow-xl md:text-5xl lg:text-6xl">
-                {post.title}
-              </h1>
-
-              {/* Byline */}
-              <div className="mt-8 flex items-center gap-6 text-lg text-gray-200">
-                <div>
-                  <p className="font-medium">{author}</p>
-                  <time dateTime={post.date} className="text-gray-300">
-                    {date}
-                  </time>
+              {/* Sidebar */}
+              <div className="hidden lg:block lg:col-span-4 pb-10">
+                <div className="flex gap-4">
+                  <button className="flex-1 bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
+                    <Share2 className="h-4 w-4" /> Share Signal
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <article className="mx-auto max-w-4xl px-6 py-16 lg:px-8 lg:py-24">
-          {/* Lead */}
-          {post.description && (
-            <p className="mb-12 text-xl font-medium leading-relaxed text-gray-700 lg:text-2xl">
-              {post.description}
-            </p>
-          )}
+        {/* --- 3. CONTENT --- */}
+        <section className="max-w-[1400px] mx-auto px-6 mt-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <aside className="hidden lg:block lg:col-span-2 sticky top-28 h-fit">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">
+                Summary
+              </h4>
+              <p className="text-xs font-medium text-slate-500 leading-relaxed italic border-l-2 border-indigo-500 pl-4">
+                {post.description}
+              </p>
+            </aside>
 
-          {/* Rich body content with proper formatting */}
-          <div
-            className="prose prose-lg prose-indigo mx-auto max-w-none lg:prose-xl 
-                     prose-headings:font-bold prose-headings:tracking-tight 
-                     prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline 
-                     prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 
-                     prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-gray-700
-                     prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8
-                     prose-p:mb-6 prose-ul:mb-6 prose-ol:mb-6"
-          >
-            <PortableText
-              value={post.body}
-              components={{
-                marks: {
-                  strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  link: ({ value, children }) => {
-                    const target = (value?.href || "").startsWith("http") ? "_blank" : undefined;
-                    return (
-                      <a
-                        href={value?.href}
-                        target={target}
-                        rel={target === "_blank" ? "noopener noreferrer" : undefined}
-                        className="text-indigo-600 hover:underline"
-                      >
-                        {children}
-                      </a>
-                    );
-                  },
-                },
-                block: {
-                  h3: ({ children }) => <h3 className="text-2xl font-bold mt-10 mb-6">{children}</h3>,
-                  // You can add more custom blocks here if needed (h1, h2, blockquote, etc.)
-                },
-              }}
-            />
-          </div>
+            <article className="col-span-12 lg:col-span-7 prose prose-lg md:prose-xl prose-slate max-w-none">
+              <PortableText value={post.body} />
+            </article>
 
-          {/* Back link */}
-          <div className="mt-20 border-t pt-10 text-center">
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-3 rounded-full bg-gray-100 px-8 py-4 text-lg font-medium text-gray-700 transition hover:bg-gray-200"
-            >
-              ← Back to All Posts
-            </Link>
+            <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28 h-fit">
+              <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl">
+                <Megaphone className="h-8 w-8 text-indigo-500 mb-6" />
+                <h4 className="text-xl font-black mb-2 tracking-tight uppercase">
+                  Partner With Us
+                </h4>
+                <p className="text-slate-400 text-[11px] mb-8">
+                  Reach our high-growth audience of founders and builders.
+                </p>
+                <Link
+                  href="/advertise"
+                  className="flex items-center justify-center w-full py-4 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all"
+                >
+                  Get Media Kit <ExternalLink className="ml-2 h-3 w-3" />
+                </Link>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-indigo-600" /> Hot Topics
+                </h4>
+                {[1, 2, 3].map((i) => (
+                  <h5
+                    key={i}
+                    className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors"
+                  >
+                    The future of capital allocation in 2026.
+                  </h5>
+                ))}
+              </div>
+            </aside>
           </div>
-        </article>
+        </section>
       </main>
     </MainLayout>
   );
