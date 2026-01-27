@@ -7,7 +7,7 @@ export const revalidate = 0;
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
-import { client } from "@/lib/sanity/client";
+import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
 import { allPostsQuery } from "@/lib/sanity/queries";
 
@@ -24,6 +24,7 @@ interface Post {
 }
 
 export default async function BlogPage() {
+    const client = getSanityClient();
   // fetch posts at request time
   const posts: Post[] = await client.fetch(allPostsQuery) || [];
 

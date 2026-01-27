@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 // src/app/blog/post/[slug]/page.tsx
 import MainLayout from "@/components/layout/MainLayout";
-import { client } from "@/lib/sanity/client";
+import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
 import { postBySlugQuery } from "@/lib/sanity/queries";
 import Image from "next/image";
@@ -30,11 +30,12 @@ interface Post {
 interface Props {
   params: { slug: string };
 }
-
+  
 // Fetch single post
 async function getPost(slug: string): Promise<Post | null> {
   if (!slug) return null;
   try {
+    const client = getSanityClient();
     const post = await client.fetch(postBySlugQuery, { slug });
     return post ?? null;
   } catch (err) {

@@ -8,7 +8,7 @@ export const revalidate = 0;
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
-import { client } from "@/lib/sanity/client";
+import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
 import { postsByCategoryQuery } from "@/lib/sanity/queries";
 
@@ -28,6 +28,7 @@ interface Props {
 }
 
 export default async function CategoryPage({ params }: Props) {
+    const client = getSanityClient();
   const category = params.category || "unknown";
   const posts: Post[] = await client.fetch(postsByCategoryQuery, { categorySlug: category }) || [];
 
