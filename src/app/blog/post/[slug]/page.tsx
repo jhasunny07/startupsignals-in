@@ -1,50 +1,79 @@
-export const dynamic = "force-dynamic";
-
+// src/app/blog/post/[slug]/page.tsx
+export const dynamic = "force-dynamic"; // ensures fresh content
 
 import MainLayout from "@/components/layout/MainLayout";
 import { getSanityClient } from "@/lib/sanity/client";
-import { urlFor } from "@/lib/sanity/image";
 import { postBySlugQuery } from "@/lib/sanity/queries";
+import { urlFor } from "@/lib/sanity/image";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
+import type { Metadata } from "next";
 import {
   ArrowLeft,
-  Megaphone,
-  ExternalLink,
   Clock,
   Share2,
+  Megaphone,
+  ExternalLink,
   TrendingUp,
 } from "lucide-react";
 
-export default async function PostPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+// --- 1. Dynamic Metadata for SEO ---
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const client = getSanityClient();
+  const post = await client.fetch(postBySlugQuery, { slug });
+
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      description: "The post you are looking for does not exist.",
+    };
+  }
+
+  return {
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.description || "",
+    openGraph: {
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.description || "",
+      images: post.coverImage
+        ? [
+            {
+              url: urlFor(post.coverImage).width(1200).height(630).url(),
+              width: 1200,
+              height: 630,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.seoTitle || post.title,
+      description: post.seoDescription || post.description || "",
+      images: post.coverImage ? [urlFor(post.coverImage).width(1200).height(630).url()] : [],
+    },
+  };
+}
+
+// --- 2. Page Component ---
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const client = getSanityClient();
   const post = await client.fetch(postBySlugQuery, { slug });
 
   if (!post) notFound();
 
-const imageBuilder = urlFor(post.coverImage);
-const imageUrl = imageBuilder ? imageBuilder.url() : null;
+  const imageUrl = post.coverImage ? urlFor(post.coverImage).url() : null;
 
   return (
     <MainLayout>
       <main className="bg-[#f9fafb] min-h-screen pb-20 font-sans">
-        {/* --- 1. HERO IMAGE --- */}
+        {/* HERO IMAGE */}
         <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
           {imageUrl && (
-            <Image
-              src={imageUrl}
-              fill
-              alt={post.title}
-              className="object-cover opacity-60"
-              priority
-            />
+            <Image src={imageUrl} fill alt={post.title} className="object-cover opacity-60" priority />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
           <div className="absolute top-10 left-10">
@@ -57,7 +86,7 @@ const imageUrl = imageBuilder ? imageBuilder.url() : null;
           </div>
         </section>
 
-        {/* --- 2. TITLE CARD --- */}
+        {/* TITLE CARD */}
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="relative -mt-32 md:-mt-48 z-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
@@ -72,9 +101,7 @@ const imageUrl = imageBuilder ? imageBuilder.url() : null;
 
                 <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-slate-50">
                   <div className="flex items-center gap-3">
-                    <p className="text-sm font-black text-slate-900">
-                      {post.authorName || "Editorial"}
-                    </p>
+                    <p className="text-sm font-black text-slate-900">{post.authorName || "Editorial"}</p>
                   </div>
 
                   <div className="h-1 w-1 rounded-full bg-slate-200" />
@@ -97,13 +124,11 @@ const imageUrl = imageBuilder ? imageBuilder.url() : null;
           </div>
         </div>
 
-        {/* --- 3. CONTENT --- */}
+        {/* CONTENT */}
         <section className="max-w-[1400px] mx-auto px-6 mt-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <aside className="hidden lg:block lg:col-span-2 sticky top-28 h-fit">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">
-                Summary
-              </h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Summary</h4>
               <p className="text-xs font-medium text-slate-500 leading-relaxed italic border-l-2 border-indigo-500 pl-4">
                 {post.description}
               </p>
@@ -116,9 +141,7 @@ const imageUrl = imageBuilder ? imageBuilder.url() : null;
             <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28 h-fit">
               <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl">
                 <Megaphone className="h-8 w-8 text-indigo-500 mb-6" />
-                <h4 className="text-xl font-black mb-2 tracking-tight uppercase">
-                  Partner With Us
-                </h4>
+                <h4 className="text-xl font-black mb-2 tracking-tight uppercase">Partner With Us</h4>
                 <p className="text-slate-400 text-[11px] mb-8">
                   Reach our high-growth audience of founders and builders.
                 </p>
@@ -134,14 +157,6 @@ const imageUrl = imageBuilder ? imageBuilder.url() : null;
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-indigo-600" /> Hot Topics
                 </h4>
-                {[1, 2, 3].map((i) => (
-                  <h5
-                    key={i}
-                    className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors"
-                  >
-                    The future of capital allocation in 2026.
-                  </h5>
-                ))}
               </div>
             </aside>
           </div>
