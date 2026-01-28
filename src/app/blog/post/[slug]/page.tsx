@@ -1,5 +1,5 @@
 // src/app/blog/post/[slug]/page.tsx
-export const dynamic = "force-dynamic"; // ensures fresh content
+export const dynamic = "force-dynamic";
 
 import MainLayout from "@/components/layout/MainLayout";
 import { getSanityClient } from "@/lib/sanity/client";
@@ -19,9 +19,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-// --- 1. Dynamic Metadata for SEO ---
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+// --------------------
+// 1. Dynamic Metadata
+// --------------------
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const { slug } = params;
   const client = getSanityClient();
   const post = await client.fetch(postBySlugQuery, { slug });
 
@@ -32,16 +38,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
   }
 
+  const title = post.seoTitle || post.title;
+  const description = post.seoDescription || post.description || "";
+
+  // ✅ SAFE IMAGE BUILDER
+  const ogImageBuilder = post.coverImage ? urlFor(post.coverImage) : null;
+  const ogImageUrl = ogImageBuilder
+    ? ogImageBuilder.width(1200).height(630).url()
+    : null;
+
   return {
-    title: post.seoTitle || post.title,
-    description: post.seoDescription || post.description || "",
+    title,
+    description,
     openGraph: {
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.description || "",
-      images: post.coverImage
+      title,
+      description,
+      type: "article",
+      images: ogImageUrl
         ? [
             {
-              url: urlFor(post.coverImage).width(1200).height(630).url(),
+              url: ogImageUrl,
               width: 1200,
               height: 630,
             },
@@ -50,22 +66,30 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     },
     twitter: {
       card: "summary_large_image",
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.description || "",
-      images: post.coverImage ? [urlFor(post.coverImage).width(1200).height(630).url()] : [],
+      title,
+      description,
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   };
 }
 
-// --- 2. Page Component ---
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+// --------------------
+// 2. Page Component
+// --------------------
+export default async function PostPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const { slug } = params;
   const client = getSanityClient();
   const post = await client.fetch(postBySlugQuery, { slug });
 
   if (!post) notFound();
 
-  const imageUrl = post.coverImage ? urlFor(post.coverImage).url() : null;
+  // ✅ SAFE IMAGE HANDLING
+  const imageBuilder = post.coverImage ? urlFor(post.coverImage) : null;
+  const imageUrl = imageBuilder ? imageBuilder.url() : null;
 
   return (
     <MainLayout>
@@ -73,9 +97,16 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         {/* HERO IMAGE */}
         <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
           {imageUrl && (
-            <Image src={imageUrl} fill alt={post.title} className="object-cover opacity-60" priority />
+            <Image
+              src={imageUrl}
+              fill
+              alt={post.title}
+              className="object-cover opacity-60"
+              priority
+            />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
+
           <div className="absolute top-10 left-10">
             <Link
               href="/blog"
@@ -100,9 +131,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-slate-50">
-                  <div className="flex items-center gap-3">
-                    <p className="text-sm font-black text-slate-900">{post.authorName || "Editorial"}</p>
-                  </div>
+                  <p className="text-sm font-black text-slate-900">
+                    {post.authorName || "Editorial"}
+                  </p>
 
                   <div className="h-1 w-1 rounded-full bg-slate-200" />
 
@@ -114,11 +145,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
               {/* Sidebar */}
               <div className="hidden lg:block lg:col-span-4 pb-10">
-                <div className="flex gap-4">
-                  <button className="flex-1 bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
-                    <Share2 className="h-4 w-4" /> Share Signal
-                  </button>
-                </div>
+                <button className="w-full bg-white border border-slate-200 p-4 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
+                  <Share2 className="h-4 w-4" /> Share Signal
+                </button>
               </div>
             </div>
           </div>
@@ -128,7 +157,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <section className="max-w-[1400px] mx-auto px-6 mt-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <aside className="hidden lg:block lg:col-span-2 sticky top-28 h-fit">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Summary</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">
+                Summary
+              </h4>
               <p className="text-xs font-medium text-slate-500 leading-relaxed italic border-l-2 border-indigo-500 pl-4">
                 {post.description}
               </p>
@@ -141,7 +172,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28 h-fit">
               <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl">
                 <Megaphone className="h-8 w-8 text-indigo-500 mb-6" />
-                <h4 className="text-xl font-black mb-2 tracking-tight uppercase">Partner With Us</h4>
+                <h4 className="text-xl font-black mb-2 tracking-tight uppercase">
+                  Partner With Us
+                </h4>
                 <p className="text-slate-400 text-[11px] mb-8">
                   Reach our high-growth audience of founders and builders.
                 </p>
