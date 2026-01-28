@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
+
 
 import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
