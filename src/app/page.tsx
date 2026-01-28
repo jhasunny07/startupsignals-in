@@ -1,195 +1,162 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 import MainLayout from "@/components/layout/MainLayout";
 import { getSanityClient } from "@/lib/sanity/client";
-import { urlFor } from "@/lib/sanity/image";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, ChevronRight, Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  ArrowRight, 
-  Zap, 
-  Shield, 
-  Activity, 
-  Plus, 
-  ArrowUpRight,
-  Search,
-  LayoutGrid
-} from "lucide-react";
 
-const HOME_PAGE_QUERY = `*[_type == "post"] | order(publishedAt desc) [0...15] {
-  title,
-  "slug": slug.current,
-  description,
-  "category": categories[0]->title,
-  coverImage {
-    asset->{
-      _id,
-      url
+async function getHomeData() {
+  const client = getSanityClient();
+  const query = `{
+    "categories": *[_type == "category"] { title, "slug": slug.current },
+    "posts": *[_type == "post"] | order(publishedAt desc) [0...40] {
+      title,
+      "slug": slug.current,
+      description,
+      "category": categories[0]->title,
+      coverImage { asset->{ url } },
+      publishedAt
     }
-  },
-  publishedAt,
-  "authorName": author->name
-}`;
+  }`;
+  return await client.fetch(query);
+}
 
 export default async function Home() {
-  const client = getSanityClient();
-  const posts = await client.fetch(HOME_PAGE_QUERY) || [];
+  const { categories, posts } = await getHomeData();
 
-  if (!posts.length) return <MainLayout><div className="h-screen flex items-center justify-center">Initializing Signals...</div></MainLayout>;
+  if (!posts || posts.length === 0) {
+    return (
+      <MainLayout>
+        <div className="py-40 text-center font-bold text-slate-400">Content is loading...</div>
+      </MainLayout>
+    );
+  }
 
-  const mainFeature = posts[0];
-  const sideFeatures = posts.slice(1, 4);
-  const theFeed = posts.slice(4);
+  const heroPost = posts[0];
 
   return (
     <MainLayout>
-      <div className="bg-[#0a0a0a] text-white min-h-screen">
+      <div className="bg-white min-h-screen">
         
-        {/* --- 1. THE BENTO HERO GRID --- */}
-        <section className="px-4 md:px-6 pt-6 pb-20">
-          <div className="max-w-[1500px] mx-auto">
-            
-            {/* Top Navigation / Category Bar */}
-            <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-6">
-               <div className="flex items-center gap-6">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-500">Global Feed</span>
-                  <div className="flex gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden md:flex">
-                     {["Strategy", "Capital", "Tech", "Success"].map(cat => (
-                       <Link key={cat} href="#" className="hover:text-white transition-colors">{cat}</Link>
-                     ))}
-                  </div>
-               </div>
-               <div className="flex items-center gap-4">
-                  <Search className="h-4 w-4 text-slate-500" />
-                  <LayoutGrid className="h-4 w-4 text-slate-500" />
-               </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              {/* Main Feature: 8 Columns */}
-              <div className="lg:col-span-8 group">
-                <Link href={`/blog/post/${mainFeature.slug}`} className="relative block h-[500px] md:h-[650px] overflow-hidden rounded-[2.5rem] bg-slate-900 shadow-2xl">
-                  <Image
-                    src={
-  mainFeature.coverImage?.asset?.url
-    ? mainFeature.coverImage.asset.url
-    : "/placeholder.jpg"
-}
-                    alt={mainFeature.title}
-                    fill
-                    className="object-cover opacity-60 transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 p-8 md:p-16">
-                    <span className="bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-sm mb-6 inline-block">
-                      Primary Analysis
-                    </span>
-                    <h1 className="text-4xl md:text-7xl font-black leading-[0.9] tracking-tighter mb-6 group-hover:text-indigo-400 transition-colors">
-                      {mainFeature.title}
-                    </h1>
-                    <p className="max-w-xl text-slate-400 text-lg font-medium line-clamp-2">{mainFeature.description}</p>
-                  </div>
-                </Link>
-              </div>
-
-              {/* Side Stack: 4 Columns */}
-              <div className="lg:col-span-4 flex flex-col gap-6">
-                {sideFeatures.map((post: any) => (
-                  <Link key={post.slug} href={`/blog/post/${post.slug}`} className="flex-1 bg-white/5 border border-white/10 rounded-[2rem] p-6 hover:bg-white/10 transition-all group flex flex-col justify-between">
-                    <div>
-                      <span className="text-indigo-500 text-[9px] font-black uppercase tracking-widest mb-4 block">{post.category}</span>
-                      <h3 className="text-xl font-bold leading-tight group-hover:text-indigo-400 transition-colors line-clamp-2">
-                        {post.title}
-                      </h3>
-                    </div>
-                    <div className="flex items-center justify-between mt-4">
-                       <span className="text-[10px] font-bold text-slate-500 uppercase">{new Date(post.publishedAt).toLocaleDateString()}</span>
-                       <div className="h-8 w-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-                          <ArrowUpRight className="h-4 w-4" />
-                       </div>
-                    </div>
+        {/* --- 1. REFINED HERO (Elegant & Balanced) --- */}
+        <section className="bg-slate-50 border-b border-slate-100 py-12 md:py-2">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+              <div className="lg:col-span-7 space-y-6 order-2 lg:order-1 text-center lg:text-left">
+                <Badge className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none">
+                  Top Intelligence
+                </Badge>
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.1] tracking-tighter">
+                  {heroPost.title}
+                </h1>
+                <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+                  {heroPost.description}
+                </p>
+                <div className="pt-4">
+                  <Link href={`/blog/post/${heroPost.slug}`} className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg">
+                    Read Story <ArrowRight className="h-4 w-4" />
                   </Link>
-                ))}
+                </div>
+              </div>
+              <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center lg:justify-end">
+                <div className="relative w-full max-w-[500px] aspect-square rounded-[2.5rem] overflow-hidden shadow-2xl border-[10px] border-white bg-white">
+                  {heroPost.coverImage?.asset?.url && (
+                    <Image src={heroPost.coverImage.asset.url} fill className="object-cover" alt="" priority />
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* --- 2. THE "STRATEGY VAULT" (Horizontal Scroll/List) --- */}
-        <section className="bg-white text-black py-24 rounded-t-[4rem]">
-          <div className="max-w-[1500px] mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-               <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Zap className="h-5 w-5 text-indigo-600 fill-indigo-600" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">The Vault</span>
+        {/* --- 2. CATEGORY SECTIONS --- */}
+        <div className="container mx-auto px-6 py-12">
+          {categories && categories.slice(0, 5).map((cat: any, idx: number) => {
+            let sectionPosts = posts.filter((p: any) => p.category?.toLowerCase() === cat.title?.toLowerCase());
+            
+            if (sectionPosts.length === 0) {
+                const start = (idx + 1) % posts.length;
+                sectionPosts = posts.slice(start, start + 4);
+            }
+
+            const main = sectionPosts[0];
+            const side = sectionPosts.slice(1, 4);
+
+            if (!main || !main.slug) return null;
+
+            return (
+              <section key={cat.slug || idx} className="py-16 md:py-24 border-b border-slate-100 last:border-0">
+                <div className="flex items-center justify-between mb-10">
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter uppercase italic">{cat.title}</h2>
+                  <Link href={`/blog/category/${cat.slug}`} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1 hover:underline transition-all">
+                    View Channel <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                  {/* MAIN OVERLAY CARD */}
+                  <div className="lg:col-span-7 group">
+                    <Link href={`/blog/post/${main.slug}`} className="relative block h-full min-h-[450px] overflow-hidden rounded-[2.5rem] bg-slate-900 shadow-xl">
+                      {main.coverImage?.asset?.url && (
+                        <Image src={main.coverImage.asset.url} fill className="object-cover opacity-60 group-hover:opacity-40 transition-all duration-700" alt="" />
+                      )}
+                      <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end">
+                        <div className="space-y-4 max-w-2xl">
+                          <Badge className="bg-blue-600 text-white border-none text-[9px]">LATEST</Badge>
+                          <h3 className="text-2xl md:text-4xl font-black text-white leading-tight">{main.title}</h3>
+                          <p className="text-white/80 text-sm md:text-base line-clamp-2 font-medium">{main.description}</p>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
-                  <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none">Latest <span className="text-indigo-600">Signals.</span></h2>
-               </div>
-               <p className="max-w-xs text-sm font-medium text-slate-500 leading-relaxed">
-                 Exclusive intelligence on market shifts, technical debt, and capital growth strategies.
-               </p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-               {theFeed.map((post: any) => (
-                 <Link key={post.slug} href={`/blog/post/${post.slug}`} className="group">
-                    <div className="relative aspect-[16/10] rounded-3xl overflow-hidden mb-8 bg-slate-100">
-                       <Image src={
-  post.coverImage?.asset?.url
-    ? post.coverImage.asset.url
-    : "/placeholder.jpg"
-} fill alt="" className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                       <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
-                         {post.category}
-                       </div>
-                    </div>
-                    <h3 className="text-2xl font-black tracking-tight mb-4 group-hover:text-indigo-600 transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-slate-500 text-sm font-medium leading-relaxed line-clamp-2 mb-6">
-                      {post.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-300 group-hover:text-black transition-colors">
-                       <span>Read Report</span>
-                       <div className="h-px flex-1 bg-slate-100" />
-                       <Plus className="h-4 w-4" />
-                    </div>
-                 </Link>
-               ))}
-            </div>
-          </div>
-        </section>
+                  {/* SIDEBAR WITH DETAILED POSTS */}
+                  <div className="lg:col-span-5 flex flex-col gap-6">
+                    {side.map((post: any) => {
+                      if (!post || !post.slug) return null;
+                      return (
+                        <Link 
+                          key={post.slug} 
+                          href={`/blog/post/${post.slug}`} 
+                          className="bg-white border border-slate-100 rounded-[2rem] p-5 hover:border-blue-600 transition-all group shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-6"
+                        >
+                          {/* Sidebar Thumbnail */}
+                          <div className="relative h-28 w-28 shrink-0 rounded-2xl overflow-hidden bg-slate-100 border border-slate-50 shadow-inner">
+                            {post.coverImage?.asset?.url && (
+                                <Image src={post.coverImage.asset.url} fill className="object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                            )}
+                          </div>
 
-        {/* --- 3. METRIC BAR (Social Proof/Stats) --- */}
-        <section className="bg-white pb-20">
-          <div className="max-w-[1500px] mx-auto px-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 py-20 border-y border-slate-100">
-               {[
-                 { label: "Active Signals", val: "2.4k", icon: Activity },
-                 { label: "Verified Data", val: "99.9%", icon: Shield },
-                 { label: "Growth Alpha", val: "+42%", icon: Zap },
-                 { label: "Global Nodes", val: "18", icon: Globe },
-               ].map((stat, i) => (
-                 <div key={i} className="flex flex-col items-center text-center">
-                    <stat.icon className="h-6 w-6 text-indigo-600 mb-4" />
-                    <span className="text-4xl font-black tracking-tighter mb-1">{stat.val}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
-                 </div>
-               ))}
-            </div>
-          </div>
-        </section>
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                               <Calendar className="h-3 w-3 text-blue-600" />
+                               {new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                            
+                            <h4 className="text-base font-black leading-tight text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                              {post.title}
+                            </h4>
+
+                            <p className="text-slate-500 text-xs line-clamp-1 font-medium italic">
+                              {post.description}
+                            </p>
+
+                            <div className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase bg-blue-50/50 group-hover:bg-blue-600 group-hover:text-white px-3 py-1.5 rounded-lg w-fit transition-all">
+                              Quick Read <ArrowRight className="h-3 w-3" />
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+            );
+          })}
+        </div>
       </div>
     </MainLayout>
   );
-}
-
-// Re-using Globe icon logic for the stat bar
-function Globe({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-  )
 }
