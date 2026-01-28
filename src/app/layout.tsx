@@ -7,8 +7,27 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Your Startup Blog",
-  description: "Insights on startups, tech, growth, and building in public.",
+  metadataBase: new URL("https://startupsignals.com"), // <- Replace with your domain
+  title: {
+    default: "Startup Signals – Insights on Startups, Tech & Growth",
+    template: "%s | Startup Signals",
+  },
+  description:
+    "Actionable insights on startups, technology, funding, growth, and building products in public.",
+  openGraph: {
+    type: "website",
+    siteName: "Startup Signals",
+    title: "Startup Signals",
+    description:
+      "Insights on startups, tech, growth, and building in public.",
+    url: "https://startupsignals.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Startup Signals",
+    description:
+      "Insights on startups, tech, growth, and building in public.",
+  },
 };
 
 export default function RootLayout({
