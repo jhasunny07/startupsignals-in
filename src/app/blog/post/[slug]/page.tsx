@@ -49,11 +49,12 @@ export async function generateMetadata({
 
   const title = post.seoTitle || post.title || "Startup Signals";
   const description = post.seoDescription || post.description || "";
-  let ogImageUrl = "/placeholder.png";
+  let ogImageUrl: string = "/placeholder.png";
 
   try {
     if (post.coverImage) {
-      ogImageUrl = getImageUrl(post.coverImage, 1200, 630);
+      ogImageUrl =
+        getImageUrl(post.coverImage, 1200, 630) ?? "/placeholder.png";
     }
   } catch (error) {
     console.error("generateMetadata: Error generating ogImageUrl", error);
