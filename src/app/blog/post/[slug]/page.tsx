@@ -38,7 +38,8 @@ export async function generateMetadata({
     };
   }
 
-  const title = post.seoTitle || post.title;
+  const title = post.seoTitle || post.title || "Startup Signals";
+
   const description = post.seoDescription || post.description || "";
 
   // ✅ SAFE IMAGE BUILDER
@@ -137,7 +138,9 @@ export default async function PostPage({
 
                 <div className="flex flex-wrap items-center gap-6 pt-8 border-t border-slate-50">
                   <p className="text-sm font-black text-slate-900">
-                    {post.authorName || "Editorial"}
+                    {typeof post.authorName === "string"
+                      ? post.authorName
+                      : post.authorName?.name || "Editorial"}
                   </p>
 
                   <div className="h-1 w-1 rounded-full bg-slate-200" />
