@@ -48,13 +48,19 @@ export async function generateMetadata({
       title,
       description,
       type: "article",
-      images: ogImageUrl ? [{ url: ogImageUrl, width: 1200, height: 630 }] : [],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ogImageUrl ? [ogImageUrl] : [],
+      images: [ogImageUrl],
     },
   };
 }
