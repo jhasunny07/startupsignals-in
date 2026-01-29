@@ -9,18 +9,22 @@ import { urlFor } from "@/lib/sanity/image";
 import { postsByCategoryQuery } from "@/lib/sanity/queries";
 import type { Metadata } from "next";
 
+interface CategoryPageProps {
+  params: { slug: string };
+}
+
 // --- 1. Dynamic Metadata for SEO ---
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const categorySlug = slug?.toLowerCase()?.trim() ?? "";
-  const categoryTitle = categorySlug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ") || "Category";
+  const categorySlug = params.slug?.toLowerCase()?.trim() ?? "";
+  const categoryTitle =
+    categorySlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ") || "Category";
 
   return {
     title: `${categoryTitle} Articles`,
@@ -40,27 +44,29 @@ export async function generateMetadata({
 // --- 2. Safe image helper ---
 function getCoverImageUrl(coverImage: any): string {
   if (!coverImage) return "/images/default-post-cover.jpg";
-  const builder = urlFor(coverImage);
-  if (!builder) return "/images/default-post-cover.jpg";
-  return builder.width(800).height(600).url() ?? "/images/default-post-cover.jpg";
+  try {
+    return (
+      urlFor(coverImage).width(800).height(600).url() ??
+      "/images/default-post-cover.jpg"
+    );
+  } catch (err) {
+    return "/images/default-post-cover.jpg";
+  }
 }
 
 // --- 3. Page Component ---
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const categorySlug = slug?.toLowerCase()?.trim() ?? "";
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const categorySlug = params.slug?.toLowerCase()?.trim() ?? "";
 
   const client = getSanityClient();
-  const posts = (await client.fetch(postsByCategoryQuery, { categorySlug })) || [];
+  const posts =
+    (await client.fetch(postsByCategoryQuery, { categorySlug })) || [];
 
-  const categoryTitle = categorySlug
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ") || "Category";
+  const categoryTitle =
+    categorySlug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ") || "Category";
 
   return (
     <MainLayout>
@@ -92,7 +98,11 @@ export default async function CategoryPage({
           ) : (
             <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((post: any) => (
-                <Link key={post.slug} href={`/blog/post/${post.slug}`} className="group block">
+                <Link
+                  key={post.slug}
+                  href={`/blog/post/${post.slug}`}
+                  className="group block"
+                >
                   <article className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-500 ease-out group-hover:shadow-2xl group-hover:-translate-y-2">
                     <div className="aspect-[4/3] relative overflow-hidden">
                       <Image
@@ -126,7 +136,9 @@ export default async function CategoryPage({
                         {post.category && (
                           <>
                             <span className="mx-2">•</span>
-                            <span className="font-medium text-indigo-600">{post.category}</span>
+                            <span className="font-medium text-indigo-600">
+                              {post.category}
+                            </span>
                           </>
                         )}
                       </div>
