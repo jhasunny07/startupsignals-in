@@ -126,7 +126,9 @@ export default async function PostPage({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
               <div className="lg:col-span-8 bg-white p-8 md:p-16 rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100">
                 <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md mb-6">
-                  {post.category || "Intel"}
+                  {typeof post.category === "string"
+                    ? post.category
+                    : post.category?.title || "Intel"}
                 </span>
 
                 <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] text-slate-900 mb-8">
@@ -164,7 +166,7 @@ export default async function PostPage({
                 Summary
               </h4>
               <p className="text-xs font-medium text-slate-500 leading-relaxed italic border-l-2 border-indigo-500 pl-4">
-                {post.description}
+                {post.description || "No summary available."}
               </p>
             </aside>
 
