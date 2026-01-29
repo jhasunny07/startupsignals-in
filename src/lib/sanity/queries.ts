@@ -53,4 +53,42 @@ export const allCategoriesQuery = groq`
     title,
     "slug": slug.current
   }
-`;
+`
+
+// ===== STARTUP NEWS =====
+export const startupNewsQuery = `
+  *[_type == "startupNews"] | order(publishedAt desc) {
+    title,
+    slug,
+    summary,
+    coverImage,
+    publishedAt
+  }
+`
+
+export const singleStartupNewsQuery = `
+  *[_type == "startupNews" && slug.current == $slug][0]
+`
+
+// ===== UNICORN LIST =====
+// Old query (ascending by rank)
+
+
+// New query (descending by rank so latest unicorn is on top)
+export const unicornListQuery = `
+*[_type == "unicornStartup"] | order(rank desc) {
+  _id,
+  name,
+  rank,
+  valuation,
+  currency,
+  foundedYear,
+  country,
+  description,
+  "slug": slug.current
+}
+`
+
+
+
+;

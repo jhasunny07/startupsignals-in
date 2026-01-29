@@ -36,56 +36,61 @@ import { cn } from "@/lib/utils";
 import { getSanityClient } from "@/lib/sanity/client";
 import { allCategoriesQuery } from "@/lib/sanity/queries";
 
-/* -------------------- TOP 4 STATIC CATEGORIES -------------------- */
+/* -------------------- FEATURED NAV ITEMS -------------------- */
 const featuredCategories = [
   {
     title: "Growth Stories",
-    slug: "growth-stories",
     icon: Trophy,
     color: "text-amber-500",
     bg: "bg-amber-50",
+    href: "/blog/growth-stories",
   },
   {
-    title: "Startup Headlines",
-    slug: "startup-headlines",
+    title: "Startup News",
     icon: Zap,
     color: "text-blue-500",
     bg: "bg-blue-50",
+    href: "/news",
   },
   {
     title: "Startup Journey",
-    slug: "startup-journey",
     icon: History,
     color: "text-emerald-500",
     bg: "bg-emerald-50",
+    href: "/blog/startup-journey",
   },
   {
     title: "Top Brands",
-    slug: "top-brands",
     icon: Star,
     color: "text-purple-500",
     bg: "bg-purple-50",
+    href: "/blog/top-brands",
   },
-
   {
     title: "Funding History",
-    slug: "funding-history",
-    icon: Star,
-    color: "text-purple-500",
-    bg: "bg-purple-50",
+    icon: TrendingUp,
+    color: "text-rose-500",
+    bg: "bg-rose-50",
+    href: "/blog/funding-history",
+  },
+  {
+    title: "Unicorn List",
+    icon: Trophy,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+    href: "/unicorns",
   },
 ];
 
 /* -------------------- TRENDING -------------------- */
 const trendingArticles = [
-  { title: "The Rise of AI Agents", slug: "ai-agents-2026", tag: "Hot" },
-  { title: "Fintech's New Wave", slug: "fintech-trends", tag: "New" },
+  { title: "The Rise of AI Agents", slug: "ai-agents-2026" },
+  { title: "Fintech's New Wave", slug: "fintech-trends" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-
   const [allCategories, setAllCategories] = useState<
     { title: string; slug: string }[]
   >([]);
@@ -139,7 +144,6 @@ export default function Navbar() {
           </div>
 
           {/* DESKTOP NAV */}
-
           <nav className="hidden lg:flex items-center gap-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -149,13 +153,12 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
 
-              {/* ---------------- MEGA MENU ---------------- */}
               <DropdownMenuContent
                 align="end"
                 className="w-[500px] p-0 rounded-3xl overflow-hidden"
               >
                 <div className="flex">
-                  {/* LEFT: CATEGORIES */}
+                  {/* LEFT: BLOG CATEGORIES */}
                   <div className="flex-[1.2] p-4 bg-white">
                     <div className="flex items-center gap-2 pb-3 text-[10px] font-bold uppercase text-slate-400">
                       <TrendingUp className="h-3 w-3" />
@@ -186,7 +189,6 @@ export default function Navbar() {
                               >
                                 {Icon && <Icon className="h-4 w-4" />}
                               </div>
-
                               <span className="text-sm font-semibold">
                                 {cat.title}
                               </span>
@@ -238,7 +240,6 @@ export default function Navbar() {
           </nav>
 
           {/* MOBILE */}
-          {/* MOBILE / TABLET SIDEBAR */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
@@ -247,93 +248,46 @@ export default function Navbar() {
             </SheetTrigger>
 
             <SheetContent side="right" className="w-[85vw] sm:w-[400px]">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-xl font-bold">
-                  Startup<span className="text-indigo-600">Signals</span>
-                </span>
-              </div>
+              <SheetTitle className="mb-4">
+                Startup<span className="text-indigo-600">Signals</span>
+              </SheetTitle>
 
-              {/* SEARCH */}
-              <div className="mb-6">
-                <Input placeholder="Search startups..." />
-              </div>
+              <Input placeholder="Search startups..." className="mb-6" />
 
-              {/* FEATURED (STATIC) */}
-              <div className="mb-6">
-                <p className="text-xs font-bold uppercase text-slate-400 mb-3">
-                  Featured
-                </p>
-
-                <div className="space-y-2">
-                  {featuredCategories.map((cat) => {
-                    const Icon = cat.icon;
-                    return (
-                      <Link
-                        key={cat.slug}
-                        href={`/blog/${cat.slug}`}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100"
-                      >
-                        <div
-                          className={cn("p-2 rounded-lg", cat.bg, cat.color)}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <span className="font-semibold">{cat.title}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ALL CATEGORIES (EXPLORE) */}
-              <div>
-                <p className="text-xs font-bold uppercase text-slate-400 mb-3">
-                  Explore
-                </p>
-
-                <div className="space-y-2">
-                  {allCategories.map((cat) => {
-                    const ui = CATEGORY_UI_MAP[cat.slug];
-                    const Icon = ui?.icon;
-
-                    return (
-                      <Link
-                        key={cat.slug}
-                        href={`/blog/${cat.slug}`}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100"
-                      >
-                        <div
-                          className={cn(
-                            "p-2 rounded-lg",
-                            ui?.bg ?? "bg-slate-100",
-                            ui?.color ?? "text-slate-600",
-                          )}
-                        >
-                          {Icon && <Icon className="h-4 w-4" />}
-                        </div>
-                        <span>{cat.title}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
+              <div className="space-y-2">
+                {featuredCategories.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <Link
+                      key={cat.title}
+                      href={cat.href}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100"
+                    >
+                      <div className={cn("p-2 rounded-lg", cat.bg, cat.color)}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <span className="font-semibold">{cat.title}</span>
+                    </Link>
+                  );
+                })}
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
 
-      {/* ---------------- STATIC FEATURED CATEGORIES BAR ---------------- */}
+      {/* FEATURED BAR */}
       <div className="hidden lg:block bg-white border-t">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-6 py-3">
             {featuredCategories.map((cat) => {
               const Icon = cat.icon;
-              const isActive = pathname === `/blog/${cat.slug}`;
+              const isActive = pathname === cat.href;
 
               return (
                 <Link
-                  key={cat.slug}
-                  href={`/blog/${cat.slug}`}
+                  key={cat.title}
+                  href={cat.href}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition",
                     isActive
