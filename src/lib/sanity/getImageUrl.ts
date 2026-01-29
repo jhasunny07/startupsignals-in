@@ -1,25 +1,21 @@
 // src/lib/sanity/getImageUrl.ts
 import { urlFor } from "./image";
 
-// Use `any` because Sanity's types are tricky
 type SanityImageSource = any;
 
 export function getImageUrl(
   source: SanityImageSource | null | undefined,
   width: number,
   height: number
-): string | null {
-  // 1️⃣ Check if source exists
-  if (!source) return null;
+): string {
+  if (!source) {
+    // Return a placeholder image URL if source is null
+    return "/Blog2 body.png"; // <-- make sure you have this image in /public
+  }
 
-  // 2️⃣ Build the image URL safely
   const builder = urlFor(source);
-  if (!builder) return null; // extra safety
+  if (!builder) return "/placeholder.png";
 
   const imageUrl = builder.width(width).height(height).url();
-
-  // 3️⃣ Explicitly check if the result is null
-  if (!imageUrl) return null;
-
-  return imageUrl;
+  return imageUrl ?? "/placeholder.png";
 }
