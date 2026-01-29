@@ -3,17 +3,36 @@ import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { getSanityClient } from "./client";
 
-export function urlFor(source: SanityImageSource | null | undefined) {
-  const builder = imageUrlBuilder(getSanityClient());
+const builder = imageUrlBuilder(getSanityClient());
 
-  // If source is nullish, return a dummy builder that returns placeholder image
-  if (!source) {
+export function urlFor(source: SanityImageSource | null | undefined) {
+  try {
+    if (!source) {
+      console.warn("urlFor: source is null or undefined, returning placeholder");
+      return {
+        width: () => ({ height: () => ({ url: () => "/placeholder.png" }) }),
+        height: () => ({ width: () => ({ url: () => "/placeholder.png" }) }),
+        url: () => "/placeholder.png",
+      };
+    }
+
+    const result = builder.image(source);
+    if (!result) {
+      console.warn("urlFor: builder.image returned null, returning placeholder");
+      return {
+        width: () => ({ height: () => ({ url: () => "/placeholder.png" }) }),
+        height: () => ({ width: () => ({ url: () => "/placeholder.png" }) }),
+        url: () => "/placeholder.png",
+      };
+    }
+
+    return result;
+  } catch (error) {
+    console.error("urlFor: Exception while building image URL", error);
     return {
       width: () => ({ height: () => ({ url: () => "/placeholder.png" }) }),
       height: () => ({ width: () => ({ url: () => "/placeholder.png" }) }),
       url: () => "/placeholder.png",
     };
   }
-
-  return builder.image(source);
 }

@@ -18,18 +18,24 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-/* =========================
-   1. Dynamic Metadata
-========================= */
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
   const client = getSanityClient();
-  const post = await client.fetch(postBySlugQuery, { slug: params.slug });
+  console.log("generateMetadata: Fetching post for slug:", params.slug);
+
+  let post;
+  try {
+    post = await client.fetch(postBySlugQuery, { slug: params.slug });
+  } catch (error) {
+    console.error("generateMetadata: Error fetching post", error);
+    return { title: "Error", description: "Failed to fetch post" };
+  }
 
   if (!post) {
+    console.warn("generateMetadata: Post not found for slug", params.slug);
     return {
       title: "Post Not Found",
       description: "The post you are looking for does not exist.",
@@ -39,7 +45,13 @@ export async function generateMetadata({
   const title = post.seoTitle || post.title || "Startup Signals";
   const description = post.seoDescription || post.description || "";
 
-  const ogImageUrl = getImageUrl(post.coverImage, 1200, 630);
+  let ogImageUrl = "/placeholder.png";
+  try {
+    ogImageUrl = getImageUrl(post.coverImage, 1200, 630);
+    console.log("generateMetadata: ogImageUrl:", ogImageUrl);
+  } catch (error) {
+    console.error("generateMetadata: Error generating ogImageUrl", error);
+  }
 
   return {
     title,
@@ -48,13 +60,7 @@ export async function generateMetadata({
       title,
       description,
       type: "article",
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-        },
-      ],
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -65,25 +71,38 @@ export async function generateMetadata({
   };
 }
 
-/* =========================
-   2. Page Component
-========================= */
 export default async function PostPage({
   params,
 }: {
   params: { slug: string };
 }) {
   const client = getSanityClient();
-  const post = await client.fetch(postBySlugQuery, { slug: params.slug });
+  console.log("PostPage: Fetching post for slug:", params.slug);
 
-  if (!post) notFound();
+  let post;
+  try {
+    post = await client.fetch(postBySlugQuery, { slug: params.slug });
+  } catch (error) {
+    console.error("PostPage: Error fetching post", error);
+    notFound();
+  }
 
-  const heroImageUrl = getImageUrl(post.coverImage, 1600, 900);
+  if (!post) {
+    console.warn("PostPage: Post not found, slug:", params.slug);
+    notFound();
+  }
+
+  let heroImageUrl = "/placeholder.png";
+  try {
+    heroImageUrl = getImageUrl(post.coverImage, 1600, 900);
+    console.log("PostPage: heroImageUrl:", heroImageUrl);
+  } catch (error) {
+    console.error("PostPage: Error generating heroImageUrl", error);
+  }
 
   return (
     <MainLayout>
       <main className="bg-[#f9fafb] min-h-screen pb-20 font-sans">
-        {/* HERO IMAGE */}
         <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
           {heroImageUrl && (
             <Image

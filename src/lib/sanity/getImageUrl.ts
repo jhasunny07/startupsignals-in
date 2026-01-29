@@ -7,10 +7,21 @@ export function getImageUrl(
   width: number,
   height: number
 ): string {
-  const builder = urlFor(source);
   try {
-    return builder.width(width).height(height).url() ?? "/placeholder.png";
-  } catch {
+    if (!source) {
+      console.warn("getImageUrl: source is null, returning placeholder");
+      return "/placeholder.png";
+    }
+
+    const imageUrl = urlFor(source).width(width).height(height).url();
+    if (!imageUrl) {
+      console.warn("getImageUrl: urlFor returned null, using placeholder");
+      return "/placeholder.png";
+    }
+
+    return imageUrl;
+  } catch (error) {
+    console.error("getImageUrl: Error building image URL", error);
     return "/placeholder.png";
   }
 }
