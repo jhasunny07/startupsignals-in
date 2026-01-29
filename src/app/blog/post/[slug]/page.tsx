@@ -42,7 +42,10 @@ export async function generateMetadata({
   const description = post.seoDescription || post.description || "";
 
   // ✅ SAFE IMAGE BUILDER
-  const ogImageBuilder = post.coverImage ? urlFor(post.coverImage) : null;
+  const ogImageBuilder = post.coverImage?.asset
+    ? urlFor(post.coverImage)
+    : null;
+
   const ogImageUrl = ogImageBuilder
     ? ogImageBuilder.width(1200).height(630).url()
     : null;
@@ -88,7 +91,7 @@ export default async function PostPage({
   if (!post) notFound();
 
   // ✅ SAFE IMAGE HANDLING
-  const imageBuilder = post.coverImage ? urlFor(post.coverImage) : null;
+  const imageBuilder = post.coverImage?.asset ? urlFor(post.coverImage) : null;
   const imageUrl = imageBuilder ? imageBuilder.url() : null;
 
   return (
@@ -166,7 +169,7 @@ export default async function PostPage({
             </aside>
 
             <article className="col-span-12 lg:col-span-7 prose prose-lg md:prose-xl prose-slate max-w-none">
-              <PortableText value={post.body} />
+              <PortableText value={post.body ?? []} />
             </article>
 
             <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28 h-fit">
