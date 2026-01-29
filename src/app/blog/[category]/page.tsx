@@ -9,17 +9,14 @@ import { urlFor } from "@/lib/sanity/image";
 import { postsByCategoryQuery } from "@/lib/sanity/queries";
 import type { Metadata } from "next";
 
-interface CategoryPageProps {
-  params: { slug: string };
-}
-
 // --- 1. Dynamic Metadata for SEO ---
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const categorySlug = params.slug?.toLowerCase()?.trim() ?? "";
+  const { slug } = await params;
+  const categorySlug = slug?.toLowerCase()?.trim() ?? "";
   const categoryTitle =
     categorySlug
       .split("-")
@@ -44,19 +41,21 @@ export async function generateMetadata({
 // --- 2. Safe image helper ---
 function getCoverImageUrl(coverImage: any): string {
   if (!coverImage) return "/images/default-post-cover.jpg";
-  try {
-    return (
-      urlFor(coverImage).width(800).height(600).url() ??
-      "/images/default-post-cover.jpg"
-    );
-  } catch (err) {
-    return "/images/default-post-cover.jpg";
-  }
+  const builder = urlFor(coverImage);
+  if (!builder) return "/images/default-post-cover.jpg";
+  return (
+    builder.width(800).height(600).url() ?? "/images/default-post-cover.jpg"
+  );
 }
 
 // --- 3. Page Component ---
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  const categorySlug = params.slug?.toLowerCase()?.trim() ?? "";
+export default async function CategoryPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const categorySlug = slug?.toLowerCase()?.trim() ?? "";
 
   const client = getSanityClient();
   const posts =

@@ -1,19 +1,14 @@
 // src/lib/sanity/client.ts
 import { createClient } from "next-sanity";
+import { apiVersion, dataset, projectId, token } from "./env"; // we will create this
 
-export function getSanityClient() {
-  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
+export const client = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  token,
+  useCdn: false, // set to false for fresh content
+});
 
-  if (!projectId || !dataset) {
-    throw new Error("Sanity environment variables are missing");
-  }
-
-  return createClient({
-    projectId,
-    dataset,
-    apiVersion: "2024-01-01",
-    useCdn: false,
-    perspective: "published",
-  });
-}
+// Helper function to use in your pages
+export const getSanityClient = () => client;
