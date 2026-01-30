@@ -28,11 +28,17 @@ export default function UnicornsPage() {
   const ptComponents = {
     types: {
       image: ({ value }: any) => {
-        if (!value?.asset) return null;
+        // 🚀 SAFE CHECK: Match your blog page logic
+        if (!value || !value.asset) return null;
+
+        const imageUrl = urlFor(value)?.width(1000).url() ?? null;
+
+        if (!imageUrl) return null;
+
         return (
           <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
             <Image
-              src={urlFor(value).width(1000).url()}
+              src={imageUrl}
               alt="Startup detail"
               fill
               className="object-cover"
@@ -68,7 +74,7 @@ export default function UnicornsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-slate-900 font-sans pb-10">
-      {/* 📱 MOBILE NAV - STICKY POSITIONING */}
+      {/* 📱 STICKY MOBILE NAV */}
       <div className="lg:hidden sticky top-[64px] z-40 w-full px-4 py-3 bg-white border-b border-slate-200 shadow-sm">
         <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
           {unicorns.map((u) => (
@@ -85,7 +91,7 @@ export default function UnicornsPage() {
 
       <div className="max-w-[1400px] mx-auto px-4 md:px-12 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* 💻 DESKTOP SIDEBAR - REFINED & COMPACT */}
+          {/* 💻 DESKTOP SIDEBAR */}
           <aside className="hidden lg:block w-56 sticky top-28 h-[calc(100vh-160px)]">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col h-full">
               <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-5 px-2">
