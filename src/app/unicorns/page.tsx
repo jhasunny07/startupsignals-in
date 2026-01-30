@@ -29,14 +29,14 @@ export default function UnicornsPage() {
       image: ({ value }: any) => {
         if (!value?.url) return null;
         return (
-          <div className="my-16 group/img relative overflow-hidden rounded-sm border border-slate-200">
+          <div className="my-10 md:my-16 group/img relative overflow-hidden rounded-sm border border-white/10">
             <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover/img:opacity-100 transition-opacity z-10 pointer-events-none" />
             <Image
               src={value.url}
               alt="Unicorn detail"
               width={1200}
               height={600}
-              className="w-full object-cover grayscale-[50%] hover:grayscale-0 scale-100 hover:scale-105 transition-all duration-700 ease-in-out"
+              className="w-full h-auto object-cover grayscale-[50%] hover:grayscale-0 scale-100 hover:scale-105 transition-all duration-700 ease-in-out"
             />
           </div>
         );
@@ -44,7 +44,7 @@ export default function UnicornsPage() {
     },
     block: {
       normal: ({ children }: any) => (
-        <p className="mb-6 text-slate-500 leading-relaxed text-sm md:text-lg max-w-3xl">
+        <p className="mb-6 text-slate-400 leading-relaxed text-sm md:text-base max-w-3xl">
           {children}
         </p>
       ),
@@ -62,145 +62,137 @@ export default function UnicornsPage() {
 
   if (loading)
     return (
-      <div className="h-screen flex items-center justify-center bg-white">
+      <div className="h-screen flex items-center justify-center bg-[#0a0a0a]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-1 bg-slate-100 relative overflow-hidden">
-            <div className="absolute inset-0 bg-blue-600 animate-loading-bar" />
+          <div className="w-16 h-[1px] bg-white/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-blue-500 animate-[loading_1.5s_infinite_ease-in-out]" />
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-tighter">
-            Initializing Database...
+          <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-blue-500">
+            Syncing_Data...
           </span>
         </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 selection:bg-blue-600 selection:text-white">
-      {/* BACKGROUND GRID DECOR */}
+    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white font-sans overflow-x-hidden">
+      {/* FIXED BACKGROUND GRID - ERROR FIXED HERE */}
       <div
-        className="fixed inset-0 z-0 opacity-[0.03] pointer-events-none"
+        className="fixed inset-0 z-0 opacity-20 pointer-events-none"
         style={{
-          backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
-          size: "40px 40px",
+          backgroundImage: `radial-gradient(circle at 2px 2px, #333 1px, transparent 0)`,
           backgroundSize: "40px 40px",
         }}
       />
 
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 relative z-10">
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* TECHNICAL SIDEBAR */}
-          <aside className="hidden lg:block w-64 sticky top-24 h-[calc(100vh-100px)] border-l border-slate-100">
-            <div className="pl-6 py-10">
-              <div className="flex items-center gap-2 mb-10">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                <span className="font-mono text-[10px] font-bold tracking-widest text-slate-400">
-                  LIVE_INDEX_v1.0
+      <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
+        {/* LEFT COLUMN: THE HUD (Sticky) */}
+        <aside className="lg:w-[400px] lg:h-screen lg:sticky lg:top-0 p-6 md:p-12 flex flex-col justify-between border-r border-white/10 bg-black/40 backdrop-blur-xl">
+          <div>
+            <div className="flex items-center gap-3 mb-8 md:mb-12">
+              <div className="w-2 h-2 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+              <span className="font-mono text-[9px] tracking-[0.3em] text-blue-400 uppercase">
+                Database_Terminal
+              </span>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none mb-6">
+              UNI
+              <br />
+              <span className="text-blue-500">CORNS</span>
+            </h1>
+
+            <div className="space-y-6 text-xs md:text-sm text-slate-400 font-light max-w-xs">
+              <p className="leading-relaxed">
+                Global synchronization with startup archives. Tracking
+                high-growth private equity entities.
+              </p>
+
+              <div className="pt-6 border-t border-white/10">
+                <span className="block font-mono text-[9px] text-slate-500 mb-4 tracking-widest">
+                  REGISTRY_INDEX
                 </span>
+                <nav className="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto no-scrollbar">
+                  {unicorns.map((u) => (
+                    <a
+                      key={u._id}
+                      href={`#${u.anchor}`}
+                      className="px-2 py-1 bg-white/5 border border-white/5 text-[9px] font-mono text-slate-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all"
+                    >
+                      ID_{u.rank}
+                    </a>
+                  ))}
+                </nav>
               </div>
-              <nav className="space-y-4">
-                {unicorns.map((u) => (
-                  <a
-                    key={u._id}
-                    href={`#${u.anchor}`}
-                    className="group flex flex-col"
-                  >
-                    <span className="font-mono text-[9px] text-slate-300 group-hover:text-blue-600 transition-colors">
-                      00{u.rank}
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-tight group-hover:pl-2 transition-all">
-                      {u.name}
-                    </span>
-                  </a>
-                ))}
-              </nav>
             </div>
-          </aside>
+          </div>
 
-          {/* MAIN STREAM */}
-          <main className="flex-1 py-10 lg:py-20 border-l border-slate-100 lg:pl-16">
-            <header className="mb-40">
-              <h1 className="text-[12vw] lg:text-[150px] font-black leading-[0.8] tracking-tighter uppercase mb-6">
-                Uni
-                <br />
-                corns
-              </h1>
-              <div className="flex flex-col md:flex-row md:items-center gap-6 justify-between border-t border-slate-900 pt-6">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
-                  Global Startup Intelligence Archive
-                </p>
-                <p className="text-slate-400 max-w-sm text-xs leading-relaxed">
-                  Tracking the evolution of capital and innovation through the
-                  lens of billion-dollar valuations.
-                </p>
+          <div className="hidden lg:flex justify-between font-mono text-[9px] text-slate-600 pt-8 border-t border-white/10">
+            <span>ST_01 // ARCHIVE</span>
+            <span>2026_GEN_F</span>
+          </div>
+        </aside>
+
+        {/* RIGHT COLUMN: THE STREAM */}
+        <main className="flex-1 px-6 py-12 lg:p-20 lg:pl-24 space-y-32 md:space-y-48">
+          {unicorns.map((u) => (
+            <section
+              key={u._id}
+              id={u.anchor}
+              className="relative group scroll-mt-24"
+            >
+              {/* LARGE BACKGROUND NUMBER - Adjusted for mobile */}
+              <span className="absolute -left-4 lg:-left-20 -top-8 text-[100px] md:text-[180px] font-black text-white/[0.03] select-none pointer-events-none group-hover:text-blue-500/10 transition-all duration-700">
+                {u.rank.toString().padStart(2, "0")}
+              </span>
+
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="h-[1px] w-8 md:w-12 bg-blue-500" />
+                  <span className="font-mono text-[10px] tracking-[0.2em] text-blue-400 uppercase">
+                    {u.country} • {u.foundedYear}
+                  </span>
+                </div>
+
+                <h2 className="text-4xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter mb-8 break-words leading-none">
+                  {u.name}
+                </h2>
+
+                {/* COMPACT VALUATION CARD */}
+                <div className="flex flex-wrap items-stretch bg-white text-black w-fit mb-10 overflow-hidden">
+                  <div className="px-4 py-2 border-r border-black/5">
+                    <span className="block font-mono text-[8px] uppercase font-bold text-black/50 mb-0.5">
+                      Market_Cap
+                    </span>
+                    <span className="text-xl md:text-2xl font-black tabular-nums">
+                      {formatValuation(u.valuation, u.currency)}
+                    </span>
+                  </div>
+                  <div className="px-4 py-2 flex items-center bg-slate-50 text-[10px] font-bold uppercase tracking-tight text-slate-500">
+                    Private_Equity
+                  </div>
+                </div>
+
+                <div className="max-w-2xl">
+                  <h3 className="text-lg md:text-2xl text-slate-100 font-medium leading-tight mb-8">
+                    {u.shortDescription}
+                  </h3>
+
+                  <div className="prose prose-invert prose-sm md:prose-base prose-slate max-w-none opacity-60 group-hover:opacity-100 transition-opacity duration-700">
+                    <PortableText value={u.content} components={ptComponents} />
+                  </div>
+                </div>
               </div>
-            </header>
+            </section>
+          ))}
 
-            <div className="space-y-80">
-              {unicorns.map((u) => (
-                <section
-                  key={u._id}
-                  id={u.anchor}
-                  className="relative scroll-mt-32"
-                >
-                  {/* BACKGROUND GHOST RANK */}
-                  <div className="absolute -left-10 lg:-left-24 top-0 font-black text-[200px] leading-none text-slate-50 opacity-[0.05] pointer-events-none select-none">
-                    {u.rank}
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="flex flex-col gap-10">
-                      {/* 1. THE DATA HEADER */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3 font-mono text-[10px] text-blue-600 font-bold tracking-[0.3em]">
-                          <span>RANKING_{u.rank}</span>
-                          <span className="w-10 h-[1px] bg-blue-200" />
-                          <span>LOC_{u.country.toUpperCase()}</span>
-                        </div>
-                        <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none">
-                          {u.name}
-                        </h2>
-                      </div>
-
-                      {/* 2. HYPER-COMPACT VITALS BAR */}
-                      <div className="flex flex-wrap gap-4 border border-slate-100 p-2 rounded-sm bg-slate-50/50 backdrop-blur-sm w-fit">
-                        <div className="px-6 py-3 bg-white border border-slate-200">
-                          <p className="font-mono text-[9px] text-slate-400 uppercase mb-1">
-                            Valuation
-                          </p>
-                          <p className="text-xl font-black tabular-nums">
-                            {formatValuation(u.valuation, u.currency)}
-                          </p>
-                        </div>
-                        <div className="px-6 py-3 bg-white border border-slate-200">
-                          <p className="font-mono text-[9px] text-slate-400 uppercase mb-1">
-                            Founding
-                          </p>
-                          <p className="text-xl font-black">
-                            EST_{u.foundedYear}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 3. CONTENT AREA */}
-                      <div className="max-w-4xl">
-                        <h3 className="text-xl md:text-3xl text-slate-800 font-medium tracking-tight mb-8 leading-snug">
-                          {u.shortDescription}
-                        </h3>
-
-                        <div className="prose prose-slate prose-sm md:prose-base max-w-none">
-                          <PortableText
-                            value={u.content}
-                            components={ptComponents}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              ))}
-            </div>
-          </main>
-        </div>
+          <footer className="py-20 border-t border-white/5 flex flex-col items-center gap-4 text-center">
+            <div className="w-1 h-12 bg-gradient-to-b from-blue-500 to-transparent" />
+            <span className="font-mono text-[9px] text-slate-600 tracking-[0.5em] uppercase">
+              End_of_Transmission
+            </span>
+          </footer>
+        </main>
       </div>
 
       <style jsx global>{`
@@ -212,18 +204,19 @@ export default function UnicornsPage() {
             left: 100%;
           }
         }
-        .animate-loading-bar {
-          position: absolute;
-          width: 50%;
-          height: 100%;
-          animation: loading 1.5s infinite ease-in-out;
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
         html {
           scroll-behavior: smooth;
         }
-        ::selection {
-          background: #2563eb;
-          color: white;
+        .break-words {
+          overflow-wrap: break-word;
+          word-break: break-word;
         }
       `}</style>
     </div>
