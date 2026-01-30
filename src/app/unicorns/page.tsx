@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { client } from "@/lib/sanity/client";
 import { unicornListQuery } from "@/lib/sanity/queries";
+import { urlFor } from "@/lib/sanity/image";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 
@@ -27,16 +28,14 @@ export default function UnicornsPage() {
   const ptComponents = {
     types: {
       image: ({ value }: any) => {
-        if (!value?.url) return null;
+        if (!value?.asset) return null;
         return (
-          <div className="my-10 md:my-16 group/img relative overflow-hidden rounded-sm border border-white/10">
-            <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover/img:opacity-100 transition-opacity z-10 pointer-events-none" />
+          <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
             <Image
-              src={value.url}
-              alt="Unicorn detail"
-              width={1200}
-              height={600}
-              className="w-full h-auto object-cover grayscale-[50%] hover:grayscale-0 scale-100 hover:scale-105 transition-all duration-700 ease-in-out"
+              src={urlFor(value).width(1000).url()}
+              alt="Startup detail"
+              fill
+              className="object-cover"
             />
           </div>
         );
@@ -44,7 +43,7 @@ export default function UnicornsPage() {
     },
     block: {
       normal: ({ children }: any) => (
-        <p className="mb-6 text-slate-400 leading-relaxed text-sm md:text-base max-w-3xl">
+        <p className="mb-3 text-slate-600 leading-relaxed text-sm md:text-base">
           {children}
         </p>
       ),
@@ -52,157 +51,137 @@ export default function UnicornsPage() {
   };
 
   const formatValuation = (num: number, currency: string) => {
+    const symbol = currency === "INR" ? "₹" : "$";
     const formatter = Intl.NumberFormat("en-US", {
       notation: "compact",
       maximumFractionDigits: 1,
     });
-    const symbol = currency === "INR" ? "₹" : "$";
     return `${symbol}${formatter.format(num)}`;
   };
 
   if (loading)
     return (
-      <div className="h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-[1px] bg-white/10 relative overflow-hidden">
-            <div className="absolute inset-0 bg-blue-500 animate-[loading_1.5s_infinite_ease-in-out]" />
-          </div>
-          <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-blue-500">
-            Syncing_Data...
-          </span>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="w-6 h-6 border-2 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white selection:bg-blue-500 selection:text-white font-sans overflow-x-hidden">
-      {/* FIXED BACKGROUND GRID - ERROR FIXED HERE */}
-      <div
-        className="fixed inset-0 z-0 opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, #333 1px, transparent 0)`,
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
-        {/* LEFT COLUMN: THE HUD (Sticky) */}
-        <aside className="lg:w-[400px] lg:h-screen lg:sticky lg:top-0 p-6 md:p-12 flex flex-col justify-between border-r border-white/10 bg-black/40 backdrop-blur-xl">
-          <div>
-            <div className="flex items-center gap-3 mb-8 md:mb-12">
-              <div className="w-2 h-2 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
-              <span className="font-mono text-[9px] tracking-[0.3em] text-blue-400 uppercase">
-                Database_Terminal
-              </span>
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none mb-6">
-              UNI
-              <br />
-              <span className="text-blue-500">CORNS</span>
-            </h1>
-
-            <div className="space-y-6 text-xs md:text-sm text-slate-400 font-light max-w-xs">
-              <p className="leading-relaxed">
-                Global synchronization with startup archives. Tracking
-                high-growth private equity entities.
-              </p>
-
-              <div className="pt-6 border-t border-white/10">
-                <span className="block font-mono text-[9px] text-slate-500 mb-4 tracking-widest">
-                  REGISTRY_INDEX
-                </span>
-                <nav className="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto no-scrollbar">
-                  {unicorns.map((u) => (
-                    <a
-                      key={u._id}
-                      href={`#${u.anchor}`}
-                      className="px-2 py-1 bg-white/5 border border-white/5 text-[9px] font-mono text-slate-400 hover:text-white hover:bg-blue-600 hover:border-blue-500 transition-all"
-                    >
-                      ID_{u.rank}
-                    </a>
-                  ))}
-                </nav>
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex justify-between font-mono text-[9px] text-slate-600 pt-8 border-t border-white/10">
-            <span>ST_01 // ARCHIVE</span>
-            <span>2026_GEN_F</span>
-          </div>
-        </aside>
-
-        {/* RIGHT COLUMN: THE STREAM */}
-        <main className="flex-1 px-6 py-12 lg:p-20 lg:pl-24 space-y-32 md:space-y-48">
+    <div className="min-h-screen bg-[#f8f9fa] text-slate-900 font-sans pb-10">
+      {/* 📱 MOBILE NAV - STICKY POSITIONING */}
+      <div className="lg:hidden sticky top-[64px] z-40 w-full px-4 py-3 bg-white border-b border-slate-200 shadow-sm">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
           {unicorns.map((u) => (
-            <section
+            <a
               key={u._id}
-              id={u.anchor}
-              className="relative group scroll-mt-24"
+              href={`#${u.anchor}`}
+              className="px-4 py-2 rounded-xl bg-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-600 whitespace-nowrap flex-shrink-0 active:bg-indigo-600 active:text-white transition-all shadow-sm border border-transparent"
             >
-              {/* LARGE BACKGROUND NUMBER - Adjusted for mobile */}
-              <span className="absolute -left-4 lg:-left-20 -top-8 text-[100px] md:text-[180px] font-black text-white/[0.03] select-none pointer-events-none group-hover:text-blue-500/10 transition-all duration-700">
-                {u.rank.toString().padStart(2, "0")}
-              </span>
-
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="h-[1px] w-8 md:w-12 bg-blue-500" />
-                  <span className="font-mono text-[10px] tracking-[0.2em] text-blue-400 uppercase">
-                    {u.country} • {u.foundedYear}
-                  </span>
-                </div>
-
-                <h2 className="text-4xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter mb-8 break-words leading-none">
-                  {u.name}
-                </h2>
-
-                {/* COMPACT VALUATION CARD */}
-                <div className="flex flex-wrap items-stretch bg-white text-black w-fit mb-10 overflow-hidden">
-                  <div className="px-4 py-2 border-r border-black/5">
-                    <span className="block font-mono text-[8px] uppercase font-bold text-black/50 mb-0.5">
-                      Market_Cap
-                    </span>
-                    <span className="text-xl md:text-2xl font-black tabular-nums">
-                      {formatValuation(u.valuation, u.currency)}
-                    </span>
-                  </div>
-                  <div className="px-4 py-2 flex items-center bg-slate-50 text-[10px] font-bold uppercase tracking-tight text-slate-500">
-                    Private_Equity
-                  </div>
-                </div>
-
-                <div className="max-w-2xl">
-                  <h3 className="text-lg md:text-2xl text-slate-100 font-medium leading-tight mb-8">
-                    {u.shortDescription}
-                  </h3>
-
-                  <div className="prose prose-invert prose-sm md:prose-base prose-slate max-w-none opacity-60 group-hover:opacity-100 transition-opacity duration-700">
-                    <PortableText value={u.content} components={ptComponents} />
-                  </div>
-                </div>
-              </div>
-            </section>
+              #{u.rank} {u.name}
+            </a>
           ))}
+        </div>
+      </div>
 
-          <footer className="py-20 border-t border-white/5 flex flex-col items-center gap-4 text-center">
-            <div className="w-1 h-12 bg-gradient-to-b from-blue-500 to-transparent" />
-            <span className="font-mono text-[9px] text-slate-600 tracking-[0.5em] uppercase">
-              End_of_Transmission
-            </span>
-          </footer>
-        </main>
+      <div className="max-w-[1400px] mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* 💻 DESKTOP SIDEBAR - REFINED & COMPACT */}
+          <aside className="hidden lg:block w-56 sticky top-28 h-[calc(100vh-160px)]">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col h-full">
+              <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-5 px-2">
+                Directory
+              </h2>
+              <nav className="space-y-0.5 overflow-y-auto no-scrollbar flex-1 pr-1">
+                {unicorns.map((u) => (
+                  <a
+                    key={u._id}
+                    href={`#${u.anchor}`}
+                    className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100"
+                  >
+                    <span className="font-mono text-[9px] font-bold text-slate-300 group-hover:text-indigo-600">
+                      {String(u.rank).padStart(2, "0")}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-500 group-hover:text-slate-900 truncate">
+                      {u.name}
+                    </span>
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </aside>
+
+          {/* MAIN STREAM */}
+          <main className="flex-1 space-y-6 md:space-y-8">
+            <header className="mb-8 hidden lg:block">
+              <span className="text-indigo-600 font-black text-[10px] uppercase tracking-[0.4em] mb-2 block">
+                Database Registry
+              </span>
+              <h1 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">
+                Archive Index<span className="text-slate-300">.</span>
+              </h1>
+            </header>
+
+            {unicorns.map((u) => (
+              <section
+                key={u._id}
+                id={u.anchor}
+                className="scroll-mt-[100px] lg:scroll-mt-[120px]"
+              >
+                <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  {/* CARD HEADER */}
+                  <div className="p-6 md:p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white font-mono text-[11px] font-black shrink-0">
+                        {u.rank}
+                      </div>
+                      <div>
+                        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter leading-none uppercase">
+                          {u.name}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            {u.country}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            {u.foundedYear}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100 min-w-[120px] text-left md:text-right">
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                        Valuation
+                      </p>
+                      <p className="text-lg font-black text-slate-900 tracking-tighter">
+                        {formatValuation(u.valuation, u.currency)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="p-6 md:p-8">
+                    <div className="text-sm md:text-base font-bold text-slate-700 leading-relaxed mb-6 border-l-2 border-indigo-600 pl-5 py-1 italic">
+                      {u.shortDescription}
+                    </div>
+                    <article className="prose prose-slate prose-sm max-w-none prose-p:text-slate-500">
+                      <PortableText
+                        value={u.content}
+                        components={ptComponents}
+                      />
+                    </article>
+                  </div>
+                </div>
+              </section>
+            ))}
+          </main>
+        </div>
       </div>
 
       <style jsx global>{`
-        @keyframes loading {
-          0% {
-            left: -100%;
-          }
-          100% {
-            left: 100%;
-          }
+        html {
+          scroll-behavior: smooth;
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -210,13 +189,6 @@ export default function UnicornsPage() {
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
-        }
-        html {
-          scroll-behavior: smooth;
-        }
-        .break-words {
-          overflow-wrap: break-word;
-          word-break: break-word;
         }
       `}</style>
     </div>
