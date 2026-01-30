@@ -79,15 +79,23 @@ export const unicornListQuery = `
 *[_type == "unicornStartup"] | order(rank desc) {
   _id,
   name,
+  anchor,
   rank,
   valuation,
   currency,
   foundedYear,
   country,
-  description,
-  "slug": slug.current
+  shortDescription,
+  // This helps resolve image URLs inside the Portable Text array
+  content[] {
+    ...,
+    _type == "image" => {
+      ...,
+      "url": asset->url
+    }
+  }
 }
-`
+`;
 
 
 

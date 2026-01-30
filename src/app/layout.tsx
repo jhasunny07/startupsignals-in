@@ -18,8 +18,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={cn(inter.className, "antialiased bg-gray-50")}>
+    <html
+      lang="en"
+      className="scroll-smooth"
+      suppressHydrationWarning // ← Added: suppresses hydration warnings on root element
+    >
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"
+        />
+      </head>
+      <body
+        className={cn(inter.className, "antialiased bg-gray-50")}
+        suppressHydrationWarning // ← Added: suppresses hydration warnings on body
+      >
         {/* Wrapping children in MainLayout ensures Navbar/Footer show up */}
         <MainLayout>{children}</MainLayout>
       </body>

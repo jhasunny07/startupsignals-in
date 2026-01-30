@@ -1,11 +1,11 @@
+// src/app/blog/page.tsx
 export const dynamic = "force-dynamic";
 
-// import MainLayout from "@/components/layout/MainLayout";
 import Link from "next/link";
 import Image from "next/image";
 import { getSanityClient } from "@/lib/sanity/client";
 import { urlFor } from "@/lib/sanity/image";
-import { allPostsQuery } from "@/lib/sanity/queries";
+import { allPostsQuery, allCategoriesQuery } from "@/lib/sanity/queries";
 import {
   ArrowRight,
   ChevronLeft,
@@ -17,27 +17,36 @@ import {
 } from "lucide-react";
 
 interface Post {
+  _id: string;
   title: string;
   slug: string;
   date: string;
   description: string;
-  category?: string;
+  category?: { title: string; slug: string };
   coverImage?: any;
+}
+
+interface Category {
+  title: string;
+  slug: string;
 }
 
 export default async function BlogPage() {
   const client = getSanityClient();
+
   let posts: Post[] = [];
+  let categories: Category[] = [];
+
   try {
     posts = (await client.fetch(allPostsQuery)) || [];
+    categories = (await client.fetch(allCategoriesQuery)) || [];
   } catch (e) {
     console.error(e);
   }
 
   return (
-    // <MainLayout>
     <div className="bg-[#f8f9fa] min-h-screen font-sans text-slate-900">
-      {/* --- 1. PREMIUM BRAND HEADER --- */}
+      {/* HEADER */}
       <header className="bg-white border-b border-slate-200 py-12 px-6">
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col gap-2">
@@ -51,36 +60,41 @@ export default async function BlogPage() {
         </div>
       </header>
 
-      {/* --- 2. TRIPLE COLUMN GRID --- */}
       <section className="max-w-[1400px] mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT SIDEBAR: CATEGORIES */}
+          {/* LEFT SIDEBAR: DYNAMIC CATEGORIES */}
           <aside className="hidden lg:block lg:col-span-2 sticky top-28">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
-              <Hash className="h-3 w-3" /> Taxonomy
+              <Hash className="h-3 w-3" /> Categories
             </h3>
             <nav className="flex flex-col gap-4">
-              {["All Posts", "Strategy", "Capital", "Growth", "Product"].map(
-                (cat) => (
-                  <button
-                    key={cat}
-                    className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors text-left border-l-2 border-transparent hover:border-indigo-600 pl-4"
-                  >
-                    {cat}
-                  </button>
-                ),
-              )}
+              <Link
+                href="/blog"
+                className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors text-left border-l-2 border-transparent hover:border-indigo-600 pl-4"
+              >
+                All Posts
+              </Link>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/blog/${cat.slug}`} // ← changed here – now clean URL
+                  className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors text-left border-l-2 border-transparent hover:border-indigo-600 pl-4"
+                >
+                  {cat.title}
+                </Link>
+              ))}
             </nav>
           </aside>
 
-          {/* CENTER: THE MAIN FEED */}
+          {/* MAIN FEED */}
           <main className="col-span-12 lg:col-span-7 space-y-12">
             {posts.map((post) => {
-              const imageBuilder = urlFor(post.coverImage);
-              const imageUrl = imageBuilder ? imageBuilder.url() : null;
+              const imageUrl = post.coverImage
+                ? urlFor(post.coverImage)?.width(800).height(600).url()
+                : null;
               return (
                 <article
-                  key={post.slug}
+                  key={post._id}
                   className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden group hover:shadow-xl hover:shadow-indigo-50 transition-all duration-500"
                 >
                   <Link
@@ -92,14 +106,14 @@ export default async function BlogPage() {
                         <Image
                           src={imageUrl}
                           fill
-                          alt=""
+                          alt={post.title}
                           className="object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       )}
                     </div>
                     <div className="md:col-span-7 p-8 flex flex-col justify-center">
                       <div className="flex items-center gap-3 mb-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest">
-                        <span>{post.category}</span>
+                        <span>{post.category?.title || "Uncategorized"}</span>
                         <span className="w-1 h-1 rounded-full bg-slate-200" />
                         <span className="text-slate-400">
                           {post.date
@@ -121,31 +135,11 @@ export default async function BlogPage() {
                 </article>
               );
             })}
-
-            {/* PAGINATION */}
-            <div className="flex items-center justify-between pt-12">
-              <button className="p-3 bg-white border border-slate-200 rounded-full hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm">
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((n) => (
-                  <button
-                    key={n}
-                    className={`h-10 w-10 rounded-full text-xs font-bold transition-all ${n === 1 ? "bg-indigo-600 text-white shadow-lg" : "bg-white text-slate-400 hover:text-slate-900"}`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-              <button className="p-3 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all shadow-sm">
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
           </main>
 
-          {/* RIGHT SIDEBAR: ADVERTISE & TRENDING */}
+          {/* RIGHT SIDEBAR */}
           <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28">
-            {/* ADVERTISE SECTION */}
+            {/* ADVERTISE */}
             <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden">
               <div className="relative z-10">
                 <div className="bg-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center mb-6">
@@ -165,11 +159,10 @@ export default async function BlogPage() {
                   Get Media Kit <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
-              {/* Decoration */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
             </div>
 
-            {/* TRENDING WIDGET */}
+            {/* TRENDING */}
             <div className="bg-white border border-slate-200 rounded-[2rem] p-8">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-indigo-600" /> Hot Topics
@@ -195,6 +188,5 @@ export default async function BlogPage() {
         </div>
       </section>
     </div>
-    // </MainLayout>
   );
 }

@@ -1,6 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Add right after your @import lines */
+
+/* Normalize base font size & prevent unwanted zoom interpretation */
+html {
+  font-size: 100%;                /* Locks base to 16px – very reliable */
+  -webkit-text-size-adjust: 100%; /* Prevents mobile auto-zoom, helps desktop too */
+  text-size-adjust: 100%;
+}
+
+/* Ensure body uses rem consistently */
+body {
+  font-size: 1rem;                /* = 16px base */
+  line-height: 1.5;               /* Consistent line height */
+}
+
+/* Optional: Improve font smoothing consistency (helps Edge bolder text) */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility; /* Slight improvement in both browsers */
+}
+
+/* If needed – counter Windows font size override zoom */
+@media screen and (min-resolution: 1.25dppx) {  /* Targets ~125% scaling */
+  body {
+    zoom: 0.8;   /* Experimental – reduces effective zoom; test values 0.8–0.9 */
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -155,3 +184,4 @@
     @apply bg-background text-foreground;
   }
 }
+
