@@ -28,15 +28,20 @@ export default function UnicornsPage() {
   const ptComponents = {
     types: {
       image: ({ value }: any) => {
+        // 🚀 SAFE CHECK: Match your blog page logic
         if (!value || !value.asset) return null;
+
         const imageUrl = urlFor(value)?.width(1000).url() ?? null;
+
+        if (!imageUrl) return null;
+
         return (
-          <div className="my-8 relative w-full aspect-video rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+          <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
             <Image
               src={imageUrl}
               alt="Startup detail"
               fill
-              className="object-contain"
+              className="contain"
             />
           </div>
         );
