@@ -24,23 +24,16 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const resolvedParams = await params; // ✅ unwrap params
-  console.log("generateMetadata: Fetching post for slug:", resolvedParams.slug);
-
+  const resolvedParams = await params;
   const client = getSanityClient();
   let post;
   try {
     post = await client.fetch(postBySlugQuery, { slug: resolvedParams.slug });
   } catch (error) {
-    console.error("generateMetadata: Error fetching post", error);
     return { title: "Error", description: "Failed to fetch post" };
   }
 
   if (!post) {
-    console.warn(
-      "generateMetadata: Post not found for slug",
-      resolvedParams.slug,
-    );
     return {
       title: "Post Not Found",
       description: "The post you are looking for does not exist.",
@@ -57,7 +50,7 @@ export async function generateMetadata({
         getImageUrl(post.coverImage, 1200, 630) ?? "/placeholder.png";
     }
   } catch (error) {
-    console.error("generateMetadata: Error generating ogImageUrl", error);
+    console.error("Metadata image error", error);
   }
 
   return {
@@ -84,20 +77,16 @@ export default async function PostPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const resolvedParams = await params; // ✅ unwrap params
-  console.log("Params:", resolvedParams);
-
+  const resolvedParams = await params;
   const client = getSanityClient();
   let post;
   try {
     post = await client.fetch(postBySlugQuery, { slug: resolvedParams.slug });
-    console.log("Fetched post:", post);
   } catch (error) {
     console.error("Error fetching post:", error);
   }
 
   if (!post) {
-    console.warn("Post not found for slug:", resolvedParams.slug);
     notFound();
   }
 
@@ -106,8 +95,8 @@ export default async function PostPage({
     : "/placeholder.png";
 
   return (
-    // <MainLayout>
-    <main className="bg-[#f9fafb] min-h-screen pb-20 font-sans">
+    // Added overflow-x-hidden to prevent horizontal scrolling
+    <main className="bg-[#f9fafb] min-h-screen pb-20 font-sans overflow-x-hidden">
       {/* HERO */}
       <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden bg-slate-900">
         {heroImageUrl && (
@@ -120,7 +109,7 @@ export default async function PostPage({
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
-        <div className="absolute top-10 left-10">
+        <div className="absolute top-10 left-6 md:left-10">
           <Link
             href="/blog"
             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/80 hover:text-white transition-all"
@@ -131,25 +120,26 @@ export default async function PostPage({
       </section>
 
       {/* TITLE CARD */}
-      <div className="max-w-[1400px] mx-auto px-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
         <div className="relative -mt-32 md:-mt-48 z-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-            <div className="lg:col-span-8 bg-white p-8 md:p-16 rounded-[3rem] shadow-2xl border border-slate-100">
+            {/* Added responsive padding and word-break to title */}
+            <div className="lg:col-span-8 bg-white p-6 sm:p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
               <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-md mb-6">
                 {typeof post.category === "string"
                   ? post.category
                   : post.category?.title || "Intel"}
               </span>
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] text-slate-900 mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[1.1] text-slate-900 mb-8 break-words">
                 {post.title}
               </h1>
-              <div className="flex items-center gap-6 pt-8 border-t border-slate-50">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-8 border-t border-slate-50">
                 <p className="text-sm font-black text-slate-900">
                   {typeof post.authorName === "string"
                     ? post.authorName
                     : post.authorName?.name || "Editorial"}
                 </p>
-                <div className="h-1 w-1 rounded-full bg-slate-200" />
+                <div className="hidden sm:block h-1 w-1 rounded-full bg-slate-200" />
                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <Clock className="h-4 w-4" /> 8 Min Read
                 </div>
@@ -166,8 +156,8 @@ export default async function PostPage({
       </div>
 
       {/* CONTENT */}
-      <section className="max-w-[1400px] mx-auto px-6 mt-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 mt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           <aside className="hidden lg:block lg:col-span-2 sticky top-28">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">
               Summary
@@ -177,12 +167,13 @@ export default async function PostPage({
             </p>
           </aside>
 
-          <article className="col-span-12 lg:col-span-7 prose prose-lg md:prose-xl max-w-none">
+          {/* Added break-words and overflow-hidden to handle long text/images in PortableText */}
+          <article className="col-span-12 lg:col-span-7 prose prose-slate prose-lg md:prose-xl max-w-none break-words overflow-hidden">
             <PortableText value={post.body ?? []} />
           </article>
 
-          <aside className="col-span-12 lg:col-span-3 space-y-8 sticky top-28">
-            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl">
+          <aside className="col-span-12 lg:col-span-3 space-y-8 lg:sticky lg:top-28">
+            <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 text-white shadow-xl">
               <Megaphone className="h-8 w-8 text-indigo-500 mb-6" />
               <h4 className="text-xl font-black uppercase mb-2">
                 Partner With Us
@@ -192,13 +183,13 @@ export default async function PostPage({
               </p>
               <Link
                 href="/advertise"
-                className="flex items-center justify-center w-full py-4 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white"
+                className="flex items-center justify-center w-full py-4 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-colors"
               >
                 Get Media Kit <ExternalLink className="ml-2 h-3 w-3" />
               </Link>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8">
+            <div className="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-indigo-600" /> Hot Topics
               </h4>
@@ -207,6 +198,5 @@ export default async function PostPage({
         </div>
       </section>
     </main>
-    // </MainLayout>
   );
 }

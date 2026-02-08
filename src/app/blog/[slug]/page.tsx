@@ -60,7 +60,7 @@ export default async function CategoryPage({
       {/* Header */}
       <header className="relative border-b border-slate-200/80 bg-white/70 backdrop-blur-xl">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5" />
-        <div className="relative max-w-[1400px] mx-auto px-6 py-20 md:py-28">
+        <div className="relative max-w-[1400px] mx-auto px-6 py-10">
           <Link
             href="/blog"
             className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-indigo-600 mb-6"

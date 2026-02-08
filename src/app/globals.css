@@ -24,11 +24,6 @@ body {
 }
 
 /* If needed – counter Windows font size override zoom */
-@media screen and (min-resolution: 1.25dppx) {  /* Targets ~125% scaling */
-  body {
-    zoom: 0.8;   /* Experimental – reduces effective zoom; test values 0.8–0.9 */
-  }
-}
 
 @custom-variant dark (&:is(.dark *));
 

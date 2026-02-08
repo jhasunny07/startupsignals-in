@@ -78,7 +78,7 @@ export default async function Home() {
       </section>
 
       {/* CATEGORY SECTIONS */}
-      <div className="container mx-auto px-5 md:px-6 py-10 md:py-16">
+      <div className="container mx-auto px-5 md:px-6 ">
         {categories &&
           categories.slice(0, 5).map((cat: any, idx: number) => {
             let sectionPosts = posts.filter(
