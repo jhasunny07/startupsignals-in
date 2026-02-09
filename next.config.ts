@@ -9,22 +9,6 @@ const nextConfig = {
       },
     ],
   },
-
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.startupsignals.in',
-          },
-        ],
-        destination: 'https://startupsignals.in/:path*',
-        permanent: true,
-      },
-    ]
-  },
 }
 
 module.exports = nextConfig
