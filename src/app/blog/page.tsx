@@ -8,8 +8,6 @@ import { urlFor } from "@/lib/sanity/image";
 import { allPostsQuery, allCategoriesQuery } from "@/lib/sanity/queries";
 import {
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   Hash,
   Megaphone,
   TrendingUp,
@@ -22,7 +20,7 @@ interface Post {
   slug: string;
   date: string;
   description: string;
-  category?: { title: string; slug: string };
+  category?: any; // Kept flexible to handle string or object from Sanity
   coverImage?: any;
 }
 
@@ -38,10 +36,15 @@ export default async function BlogPage() {
   let categories: Category[] = [];
 
   try {
-    posts = (await client.fetch(allPostsQuery)) || [];
-    categories = (await client.fetch(allCategoriesQuery)) || [];
+    // Fetching data concurrently for better performance
+    const [postsData, categoriesData] = await Promise.all([
+      client.fetch(allPostsQuery),
+      client.fetch(allCategoriesQuery),
+    ]);
+    posts = postsData || [];
+    categories = categoriesData || [];
   } catch (e) {
-    console.error(e);
+    console.error("Sanity Fetch Error:", e);
   }
 
   return (
@@ -74,10 +77,10 @@ export default async function BlogPage() {
               >
                 All Posts
               </Link>
-              {categories.map((cat) => (
+              {categories.map((cat, index) => (
                 <Link
-                  key={cat.slug}
-                  href={`/blog/${cat.slug}`} // ← changed here – now clean URL
+                  key={`sidebar-cat-${cat.slug || index}`}
+                  href={`/blog/${cat.slug}`}
                   className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors text-left border-l-2 border-transparent hover:border-indigo-600 pl-4"
                 >
                   {cat.title}
@@ -88,20 +91,30 @@ export default async function BlogPage() {
 
           {/* MAIN FEED */}
           <main className="col-span-12 lg:col-span-7 space-y-12">
-            {posts.map((post) => {
+            {posts.map((post, index) => {
               const imageUrl = post.coverImage
                 ? urlFor(post.coverImage)?.width(800).height(600).url()
                 : null;
+
+              // FIX: Handle category whether it is a string (title) or an object
+              const categoryName =
+                typeof post.category === "string"
+                  ? post.category
+                  : post.category?.title || "Intelligence";
+
+              // FIX: Hydration safe date (avoiding new Date() on render)
+              const displayYear = post.date ? post.date.split("-")[0] : "2026";
+
               return (
                 <article
-                  key={post._id}
+                  key={`post-feed-item-${post._id || post.slug || index}`}
                   className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden group hover:shadow-xl hover:shadow-indigo-50 transition-all duration-500"
                 >
                   <Link
                     href={`/blog/post/${post.slug}`}
                     className="grid grid-cols-1 md:grid-cols-12"
                   >
-                    <div className="md:col-span-5 relative aspect-square md:aspect-auto overflow-hidden">
+                    <div className="md:col-span-5 relative aspect-square md:aspect-auto overflow-hidden bg-slate-100">
                       {imageUrl && (
                         <Image
                           src={imageUrl}
@@ -113,13 +126,9 @@ export default async function BlogPage() {
                     </div>
                     <div className="md:col-span-7 p-8 flex flex-col justify-center">
                       <div className="flex items-center gap-3 mb-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest">
-                        <span>{post.category?.title || "Uncategorized"}</span>
+                        <span>{categoryName}</span>
                         <span className="w-1 h-1 rounded-full bg-slate-200" />
-                        <span className="text-slate-400">
-                          {post.date
-                            ? new Date(post.date).getFullYear()
-                            : "2026"}
-                        </span>
+                        <span className="text-slate-400">{displayYear}</span>
                       </div>
                       <h2 className="text-2xl font-bold mb-4 group-hover:text-indigo-600 transition-colors">
                         {post.title}
@@ -170,7 +179,7 @@ export default async function BlogPage() {
               <div className="space-y-6">
                 {posts.slice(0, 3).map((p, i) => (
                   <Link
-                    key={i}
+                    key={`trending-topic-${p._id || p.slug || i}`}
                     href={`/blog/post/${p.slug}`}
                     className="group block"
                   >

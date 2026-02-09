@@ -1,3 +1,4 @@
+// src/app/page.tsx
 export const dynamic = "force-dynamic";
 
 import { getSanityClient } from "@/lib/sanity/client";
@@ -10,13 +11,14 @@ async function getHomeData() {
   const client = getSanityClient();
   const query = `{
     "categories": *[_type == "category"] { title, "slug": slug.current },
-    "posts": *[_type == "post"] | order(publishedAt desc) [0...40] {
+    "posts": *[_type == "post"] | order(date desc) [0...100] {
+      _id,
       title,
       "slug": slug.current,
       description,
-      "category": categories[0]->title,
+      "category": category->title,
       coverImage { asset->{ url } },
-      publishedAt
+      date
     }
   }`;
   return await client.fetch(query);
@@ -27,47 +29,59 @@ export default async function Home() {
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="py-40 text-center font-bold text-slate-400">
-        Content is loading...
+      <div className="py-40 text-center font-bold text-slate-400 uppercase tracking-widest">
+        Initializing Intelligence...
       </div>
     );
   }
 
+  // 1. Identify the Hero Post (latest)
   const heroPost = posts[0];
+
+  // 2. Filter categories to only include those that actually have posts
+  const activeCategories = categories.filter((cat: any) =>
+    posts.some(
+      (p: any) => p.category?.toLowerCase() === cat.title?.toLowerCase(),
+    ),
+  );
 
   return (
     <div className="bg-white min-h-screen">
       {/* HERO SECTION */}
-      <section className="bg-slate-50 border-b border-slate-100 py-10 md:py-16">
+      <section className="bg-slate-50 border-b border-slate-100 py-10 md:py-20">
         <div className="container mx-auto px-5 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5 md:space-y-6 order-2 lg:order-1 text-center lg:text-left">
-              <Badge className="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border-none">
-                Top Intelligence
-              </Badge>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-tight md:leading-[1.1] tracking-tighter line-clamp-3 break-words">
-                {heroPost.title}
-              </h1>
-              <p className="text-slate-600 text-base md:text-lg font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 line-clamp-4 md:line-clamp-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center">
+            <div className="lg:col-span-7 space-y-6 md:space-y-8 order-2 lg:order-1 text-center lg:text-left">
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-center lg:justify-start">
+                  <Badge className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-[0.2em] border-none shadow-lg shadow-indigo-100">
+                    LATEST SIGNAL
+                  </Badge>
+                </div>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-[0.95] tracking-tighter">
+                  {heroPost.title}
+                </h1>
+              </div>
+              <p className="text-slate-500 text-lg md:text-xl font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0 line-clamp-3">
                 {heroPost.description}
               </p>
-              <div className="pt-3 md:pt-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center lg:justify-start">
                 <Link
                   href={`/blog/post/${heroPost.slug}`}
-                  className="inline-flex items-center gap-3 bg-slate-900 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-black text-xs md:text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-xs md:text-sm uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl"
                 >
-                  Read Story <ArrowRight className="h-4 w-4" />
+                  Read Full Signal <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
-            <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-[420px] sm:max-w-[480px] md:max-w-[500px] aspect-[4/3] sm:aspect-square rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-2xl border-8 md:border-[10px] border-white bg-white">
+            <div className="lg:col-span-5 order-1 lg:order-2">
+              <div className="relative w-full aspect-square rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl border-[12px] border-white bg-white rotate-1 lg:rotate-3">
                 {heroPost.coverImage?.asset?.url && (
                   <Image
                     src={heroPost.coverImage.asset.url}
                     fill
                     className="object-cover"
-                    alt={heroPost.title || "Hero image"}
+                    alt={heroPost.title}
                     priority
                   />
                 )}
@@ -77,128 +91,109 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CATEGORY SECTIONS */}
-      <div className="container mx-auto px-5 md:px-6 ">
-        {categories &&
-          categories.slice(0, 5).map((cat: any, idx: number) => {
-            let sectionPosts = posts.filter(
-              (p: any) =>
-                p.category?.toLowerCase() === cat.title?.toLowerCase(),
-            );
+      {/* DYNAMIC CATEGORY FEED */}
+      <div className="container mx-auto px-5 md:px-6">
+        {activeCategories.map((cat: any, idx: number) => {
+          // Get ONLY posts belonging to this category
+          const sectionPosts = posts.filter(
+            (p: any) => p.category?.toLowerCase() === cat.title?.toLowerCase(),
+          );
 
-            if (sectionPosts.length === 0) {
-              const start = (idx + 1) % posts.length;
-              sectionPosts = posts.slice(start, start + 4);
-            }
+          // Skip rendering entirely if no posts found (extra safety)
+          if (sectionPosts.length === 0) return null;
 
-            const main = sectionPosts[0];
-            const side = sectionPosts.slice(1, 4);
+          const main = sectionPosts[0];
+          const side = sectionPosts.slice(1, 4);
 
-            if (!main || !main.slug) return null;
-
-            return (
-              <section
-                key={cat.slug || idx}
-                className="py-12 md:py-16 border-b border-slate-100 last:border-0"
-              >
-                <div className="flex items-center justify-between mb-6 md:mb-10">
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight uppercase italic">
+          return (
+            <section
+              key={`section-${cat.slug}`}
+              className="py-16 md:py-24 border-b border-slate-100 last:border-0"
+            >
+              <div className="flex items-end justify-between mb-10 md:mb-14">
+                <div className="space-y-2">
+                  <span className="text-indigo-600 font-black text-[10px] uppercase tracking-[0.4em]">
+                    Channel
+                  </span>
+                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">
                     {cat.title}
                   </h2>
+                </div>
+                <Link
+                  href={`/blog/${cat.slug}`}
+                  className="group text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 hover:text-indigo-600 transition-all"
+                >
+                  View Channel{" "}
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-1" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {/* MAIN FEATURE */}
+                <div className="lg:col-span-7 group">
                   <Link
-                    href={`/blog/${cat.slug}`}
-                    className="text-xs md:text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-1 hover:underline transition-all"
+                    href={`/blog/post/${main.slug}`}
+                    className="relative block overflow-hidden rounded-[2.5rem] bg-slate-900 shadow-2xl min-h-[450px]"
                   >
-                    View Channel <ChevronRight className="h-4 w-4" />
+                    {main.coverImage?.asset?.url && (
+                      <Image
+                        src={main.coverImage.asset.url}
+                        fill
+                        className="object-cover opacity-70 group-hover:opacity-40 transition-all duration-1000"
+                        alt={main.title}
+                      />
+                    )}
+                    <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end">
+                      <div className="space-y-4 max-w-2xl">
+                        <h3 className="text-3xl md:text-4xl font-black text-white leading-[1.1] tracking-tighter">
+                          {main.title}
+                        </h3>
+                        <p className="text-white/70 text-base line-clamp-2 font-medium">
+                          {main.description}
+                        </p>
+                      </div>
+                    </div>
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10">
-                  {/* MAIN FEATURE CARD */}
-                  <div className="lg:col-span-7 group">
+                {/* SIDEBAR POSTS FOR THIS CATEGORY */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  {side.map((post: any) => (
                     <Link
-                      href={`/blog/post/${main.slug}`}
-                      className="relative block overflow-hidden rounded-3xl md:rounded-[2.5rem] bg-slate-900 shadow-xl min-h-[320px] sm:min-h-[380px] md:min-h-[450px]"
+                      key={`side-${post.slug}`}
+                      href={`/blog/post/${post.slug}`}
+                      className="bg-white border border-slate-100 rounded-[2rem] p-5 hover:border-indigo-600 hover:shadow-xl transition-all group flex items-start gap-6"
                     >
-                      {main.coverImage?.asset?.url && (
-                        <Image
-                          src={main.coverImage.asset.url}
-                          fill
-                          className="object-cover opacity-65 group-hover:opacity-45 transition-opacity duration-700"
-                          alt={main.title || "Featured post"}
-                        />
-                      )}
-                      <div className="absolute inset-0 p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-end">
-                        <div className="space-y-3 md:space-y-4 max-w-2xl">
-                          <Badge className="bg-blue-600 text-white border-none text-[10px] md:text-xs px-2.5 py-1">
-                            LATEST
-                          </Badge>
-                          <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight md:leading-snug line-clamp-3 break-words overflow-hidden">
-                            {main.title}
-                          </h3>
-                          <p className="text-white/85 text-sm sm:text-base line-clamp-2 md:line-clamp-3 font-medium overflow-hidden">
-                            {main.description}
-                          </p>
+                      <div className="relative h-24 w-24 shrink-0 rounded-2xl overflow-hidden bg-slate-100">
+                        {post.coverImage?.asset?.url && (
+                          <Image
+                            src={post.coverImage.asset.url}
+                            fill
+                            className="object-cover"
+                            alt={post.title}
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <h4 className="text-lg font-black leading-tight text-slate-900 group-hover:text-indigo-600 line-clamp-2">
+                          {post.title}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest">
+                          Read Signal <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>
                     </Link>
-                  </div>
-
-                  {/* SIDEBAR POSTS */}
-                  <div className="lg:col-span-5 flex flex-col gap-5 md:gap-6">
-                    {side.map((post: any) => {
-                      if (!post || !post.slug) return null;
-                      return (
-                        <Link
-                          key={post.slug}
-                          href={`/blog/post/${post.slug}`}
-                          className="bg-white border border-slate-100 rounded-2xl md:rounded-[2rem] p-4 sm:p-5 hover:border-blue-600 transition-all group shadow-sm flex flex-col sm:flex-row items-start gap-4 sm:gap-6 overflow-hidden"
-                        >
-                          {/* Thumbnail */}
-                          <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-xl md:rounded-2xl overflow-hidden bg-slate-100 border border-slate-50 shadow-inner">
-                            {post.coverImage?.asset?.url && (
-                              <Image
-                                src={post.coverImage.asset.url}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                alt={post.title || "Post thumbnail"}
-                              />
-                            )}
-                          </div>
-
-                          <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
-                            <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight">
-                              <Calendar className="h-3.5 w-3.5 text-blue-600" />
-                              {new Date(post.publishedAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                },
-                              )}
-                            </div>
-
-                            <h4 className="text-base sm:text-lg font-black leading-tight text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 break-words overflow-hidden">
-                              {post.title}
-                            </h4>
-
-                            <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 font-medium overflow-hidden">
-                              {post.description}
-                            </p>
-
-                            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-blue-600 uppercase bg-blue-50/60 group-hover:bg-blue-600 group-hover:text-white px-3 py-1 rounded-md w-fit transition-all">
-                              Quick Read <ArrowRight className="h-3 w-3" />
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                  ))}
+                  {side.length === 0 && (
+                    <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-100 rounded-[2rem] p-10 text-slate-300 text-xs font-bold uppercase tracking-widest">
+                      More signals coming soon
+                    </div>
+                  )}
                 </div>
-              </section>
-            );
-          })}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </div>
   );
