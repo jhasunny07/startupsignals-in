@@ -183,7 +183,6 @@ export default function Navbar() {
                 className="w-[95vw] max-w-[1200px] p-0 rounded-[3rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] border-slate-100 animate-in fade-in zoom-in-95 duration-300"
               >
                 <div className="flex flex-col md:flex-row min-h-[400px]">
-                  {/* MEGA MENU LEFT SIDEBAR */}
                   <div className="w-full md:w-80 bg-slate-50 p-10 flex flex-col justify-between border-r border-slate-100">
                     <div>
                       <div className="flex items-center gap-2 mb-6">
@@ -198,7 +197,6 @@ export default function Navbar() {
                         Access our full database of startup intelligence.
                       </p>
                     </div>
-
                     <Link
                       href="/blog"
                       onClick={closeMenus}
@@ -211,7 +209,6 @@ export default function Navbar() {
                     </Link>
                   </div>
 
-                  {/* MEGA MENU RIGHT GRID */}
                   <div className="flex-1 p-10 bg-white">
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-3">
                       {allCategories.map((cat) => {
@@ -305,7 +302,6 @@ export default function Navbar() {
               className="w-full sm:w-[420px] p-0 border-l-0"
             >
               <div className="flex flex-col h-full bg-white">
-                {/* Mobile Header */}
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10">
                   <SheetTitle asChild>
                     <div className="flex items-center gap-2">
@@ -337,7 +333,59 @@ export default function Navbar() {
                     />
                   </div>
 
-                  {/* SHOWING ALL CATEGORIES FROM SANITY IN MOBILE MENU */}
+                  {/* FEATURED / UNICORN LIST SECTION */}
+                  <div className="mb-10">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-6 pl-1">
+                      Priority Access
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2.5">
+                      {featuredCategories.map((cat) => {
+                        const isActive = pathname === cat.href;
+                        return (
+                          <Link
+                            key={cat.title}
+                            href={cat.href}
+                            onClick={closeMenus}
+                            className={cn(
+                              "flex items-center justify-between p-4 rounded-2xl border transition-all",
+                              isActive
+                                ? "bg-indigo-600 border-indigo-600 text-white shadow-lg"
+                                : "bg-indigo-50/50 border-indigo-100 text-slate-700 hover:bg-indigo-50",
+                            )}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={cn(
+                                  "p-2 rounded-xl",
+                                  isActive
+                                    ? "bg-white/20"
+                                    : "bg-white shadow-sm",
+                                )}
+                              >
+                                <cat.icon
+                                  className={cn(
+                                    "h-5 w-5",
+                                    isActive ? "text-white" : cat.color,
+                                  )}
+                                />
+                              </div>
+                              <span className="font-bold text-md">
+                                {cat.title}
+                              </span>
+                            </div>
+                            {cat.title === "Unicorn List" && !isActive && (
+                              <span className="text-[9px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">
+                                Live
+                              </span>
+                            )}
+                            <ArrowRight className="h-4 w-4 opacity-30" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* KNOWLEDGE ARCHIVES (Sanity Categories) */}
                   <div className="mb-10">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 pl-1">
                       Knowledge Archives
@@ -356,7 +404,7 @@ export default function Navbar() {
                             className={cn(
                               "flex items-center justify-between p-4 rounded-2xl border transition-all",
                               isActive
-                                ? "bg-indigo-600 border-indigo-600 text-white shadow-xl"
+                                ? "bg-slate-900 border-slate-900 text-white shadow-xl"
                                 : "bg-white border-slate-100 text-slate-700 hover:border-indigo-100",
                             )}
                           >
@@ -393,7 +441,7 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* CONNECT SECTION (SIDE BY SIDE) */}
+                  {/* CONNECT SECTION */}
                   <div className="pt-8 border-t border-slate-100 mt-auto">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-5 pl-1 text-center">
                       Let's Connect
@@ -433,7 +481,6 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Footer Credits */}
                 <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
                     © 2026 StartupSignals Intelligence

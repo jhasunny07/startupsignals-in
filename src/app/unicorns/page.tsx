@@ -77,11 +77,20 @@ export default function UnicornsPage() {
   };
   const formatValuation = (num: number, currency: string) => {
     const symbol = currency === "INR" ? "₹" : "$";
+
+    // SMART LOGIC:
+    // If you typed 1.03, we multiply by 1 Billion.
+    // If you typed 1030000000, we use it as is.
+    const normalizedAmount = num < 100 ? num * 1_000_000_000 : num;
+
     const formatter = Intl.NumberFormat("en-US", {
       notation: "compact",
-      maximumFractionDigits: 1,
+      // This ensures 1.03 Billion shows as "1.03B" instead of just "1B"
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
     });
-    return `${symbol}${formatter.format(num)}`;
+
+    return `${symbol}${formatter.format(normalizedAmount)}`;
   };
 
   if (loading)
@@ -140,7 +149,7 @@ export default function UnicornsPage() {
               </nav>
 
               <div className="mt-6 pt-4 border-t border-slate-100 text-[10px] text-slate-400 font-medium px-2 text-center uppercase tracking-widest">
-                {unicorns.length} Unicorns Tracked
+                {unicorns.length} Unicorns
               </div>
             </div>
           </aside>
