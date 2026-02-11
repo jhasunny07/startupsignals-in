@@ -178,11 +178,14 @@ export default async function PostPage({
 
                     const imageUrl = getImageUrl(value, 1200, 800);
 
+                    // 🔥 Fix: Ensure it's always a string
+                    if (!imageUrl || typeof imageUrl !== "string") return null;
+
                     return (
                       <div className="my-8">
                         <Image
                           src={imageUrl}
-                          alt={value.alt || "Post image"}
+                          alt={value?.alt ?? "Post image"}
                           width={1200}
                           height={800}
                           className="rounded-xl w-full h-auto"
