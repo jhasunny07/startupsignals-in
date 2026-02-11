@@ -55,11 +55,11 @@ const featuredCategories = [
     href: "/news",
   },
   {
-    title: "Startup Journey",
+    title: "Shark Tank Journey",
     icon: History,
     color: "text-emerald-500",
     bg: "bg-emerald-50",
-    href: "/blog/startup-journey",
+    href: "/shark-tank-india",
   },
   {
     title: "Top Brands",
@@ -73,7 +73,7 @@ const featuredCategories = [
     icon: TrendingUp,
     color: "text-rose-500",
     bg: "bg-rose-50",
-    href: "/blog/funding-history",
+    href: "/blog/funding",
   },
   {
     title: "Unicorn List",
@@ -93,6 +93,7 @@ export default function Navbar() {
     { title: string; slug: string }[]
   >([]);
 
+  // Check if Explore/Mega Menu categories are active
   const isExploreActive = allCategories.some((cat) =>
     pathname.includes(`/blog/${cat.slug}`),
   );
@@ -340,7 +341,8 @@ export default function Navbar() {
                     </h3>
                     <div className="grid grid-cols-1 gap-2.5">
                       {featuredCategories.map((cat) => {
-                        const isActive = pathname === cat.href;
+                        // FIX: Updated logic for mobile active state
+                        const isActive = pathname.startsWith(cat.href);
                         return (
                           <Link
                             key={cat.title}
@@ -385,7 +387,7 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* KNOWLEDGE ARCHIVES (Sanity Categories) */}
+                  {/* KNOWLEDGE ARCHIVES */}
                   <div className="mb-10">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6 pl-1">
                       Knowledge Archives
@@ -444,7 +446,7 @@ export default function Navbar() {
                   {/* CONNECT SECTION */}
                   <div className="pt-8 border-t border-slate-100 mt-auto">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-5 pl-1 text-center">
-                      Let's Connect
+                      Let&apos;s Connect
                     </h3>
                     <div className="flex gap-3">
                       <Button
@@ -499,7 +501,12 @@ export default function Navbar() {
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-6 py-3">
             {featuredCategories.map((cat) => {
-              const isActive = pathname === cat.href;
+              // FIX: This ensures the active state works for nested pages (Seasons/Startups)
+              const isActive =
+                cat.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(cat.href);
+
               return (
                 <Link
                   key={cat.title}
