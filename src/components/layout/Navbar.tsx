@@ -73,7 +73,7 @@ const featuredCategories = [
     icon: TrendingUp,
     color: "text-rose-500",
     bg: "bg-rose-50",
-    href: "/blog/funding",
+    href: "/blog/fundinghistory",
   },
   {
     title: "Unicorn List",
