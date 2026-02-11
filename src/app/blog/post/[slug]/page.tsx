@@ -169,7 +169,30 @@ export default async function PostPage({
 
           {/* Added break-words and overflow-hidden to handle long text/images in PortableText */}
           <article className="col-span-12 lg:col-span-7 prose prose-slate prose-lg md:prose-xl max-w-none break-words overflow-hidden">
-            <PortableText value={post.body ?? []} />
+            <PortableText
+              value={post.body ?? []}
+              components={{
+                types: {
+                  image: ({ value }) => {
+                    if (!value?.asset?._ref) return null;
+
+                    const imageUrl = getImageUrl(value, 1200, 800);
+
+                    return (
+                      <div className="my-8">
+                        <Image
+                          src={imageUrl}
+                          alt={value.alt || "Post image"}
+                          width={1200}
+                          height={800}
+                          className="rounded-xl w-full h-auto"
+                        />
+                      </div>
+                    );
+                  },
+                },
+              }}
+            />
           </article>
 
           <aside className="col-span-12 lg:col-span-3 space-y-8 lg:sticky lg:top-28">
