@@ -172,6 +172,22 @@ export default async function PostPage({
             <PortableText
               value={post.body ?? []}
               components={{
+                // Added Link portion here
+                marks: {
+                  link: ({ children, value }) => {
+                    const isExternal = !value.href.startsWith("/");
+                    return (
+                      <Link
+                        href={value.href}
+                        target={isExternal ? "_blank" : undefined}
+                        rel={isExternal ? "noreferrer noopener" : undefined}
+                        className="text-indigo-600 font-bold decoration-indigo-300 underline-offset-4 hover:underline hover:text-indigo-700 transition-all"
+                      >
+                        {children}
+                      </Link>
+                    );
+                  },
+                },
                 // 1. Fix for the "touching" text in the body paragraphs
                 block: {
                   normal: ({ children }) => (

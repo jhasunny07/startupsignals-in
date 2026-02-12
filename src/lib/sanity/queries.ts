@@ -56,19 +56,37 @@ export const allCategoriesQuery = groq`
 `
 
 // ===== STARTUP NEWS =====
-export const startupNewsQuery = `
+export const startupNewsQuery = groq`
   *[_type == "startupNews"] | order(publishedAt desc) {
     title,
-    slug,
-    summary,
-    coverImage,
-    publishedAt
+    "slug": slug.current,
+    // This converts the Portable Text array into a plain string for the grid
+    "summary": pt::text(summary), 
+    coverImage {
+      asset->{
+        _id,
+        url
+      }
+    },
+    publishedAt,
+    "category": category->title
   }
-`
-
-export const singleStartupNewsQuery = `
-  *[_type == "startupNews" && slug.current == $slug][0]
-`
+`;
+export const singleStartupNewsQuery = groq`
+  *[_type == "startupNews" && slug.current == $slug][0] {
+    ...,
+    "slug": slug.current,
+    "authorName": author->name,
+    "category": category->title,
+    content[]{
+      ...,
+      _type == "image" => {
+        ...,
+        "asset": asset->
+      }
+    }
+  }
+`;
 
 // ===== UNICORN LIST =====
 // Old query (ascending by rank)
@@ -98,5 +116,80 @@ export const unicornListQuery = `
 `;
 
 
+
+
+/* ================================
+   SHARK TANK INDIA – GROQ QUERIES
+   ================================ */
+
+/* 1. All Seasons (Hub page) - Updated to desc for latest first */
+export const sharkTankSeasonsQuery = `
+*[_type == "sharkTankSeason"]
+| order(seasonNumber desc) {
+  _id,
+  title,
+  "slug": slug.current,
+  seasonNumber,
+  year
+}
+`;
+
+/* 2. Season Detail + Startups */
+/* 2. Season Detail + Startups (Updated for Mobile Feed) */
+export const sharkTankSeasonStartupsQuery = `
+*[_type == "sharkTankStartup" && season->slug.current == $seasonSlug]
+| order(companyName asc) {
+  _id,
+  companyName,
+  "slug": slug.current,
+  dealStatus,
+  currentStatus,
+  industry,
+  pitchAmount,
+  equityAsked,
+  shortSummary,
+  detailedJourney,
+  fundingRaisedPostShow,
+  valuation
+}
+`;
+
+/* 3. Startup Detail Page */
+export const sharkTankStartupDetailQuery = `
+*[_type == "sharkTankStartup" && slug.current == $startupSlug][0] {
+  companyName,
+  "slug": slug.current,
+  founders,
+  industry,
+  shortSummary,
+  detailedJourney,
+  season->{
+    title,
+    "slug": slug.current
+  },
+  episodeNumber,
+  pitchAmount,
+  equityAsked,
+  dealStatus,
+  currentStatus,
+  fundingRaisedPostShow,
+  lastUpdated,
+  seoTitle,
+  seoDescription
+}
+`;
+
+/* 4. Filters – Deal / Status */
+export const sharkTankFilteredStartupsQuery = `
+*[_type == "sharkTankStartup"
+  && season->slug.current == $seasonSlug
+  && dealStatus == $dealStatus
+] {
+  companyName,
+  "slug": slug.current,
+  dealStatus,
+  currentStatus
+}
+`;
 
 ;
