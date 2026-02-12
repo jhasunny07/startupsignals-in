@@ -48,7 +48,7 @@ export default async function Home() {
   return (
     <div className="bg-white min-h-screen">
       {/* HERO SECTION */}
-      <section className="bg-slate-50 border-b border-slate-100 py-10 md:py-20">
+      <section className="bg-slate-50 border-b border-slate-100 py-10 ">
         <div className="container mx-auto px-5 md:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 items-center">
             <div className="lg:col-span-7 space-y-6 md:space-y-8 order-2 lg:order-1 text-center lg:text-left">
@@ -58,7 +58,7 @@ export default async function Home() {
                     LATEST SIGNAL
                   </Badge>
                 </div>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-[0.95] tracking-tighter">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-4xl font-black text-slate-900 leading-[1.25] tracking-tighter">
                   {heroPost.title}
                 </h1>
               </div>
@@ -108,7 +108,7 @@ export default async function Home() {
           return (
             <section
               key={`section-${cat.slug}`}
-              className="py-16 md:py-24 border-b border-slate-100 last:border-0"
+              className="py-10 border-b border-slate-100 last:border-0"
             >
               <div className="flex items-end justify-between mb-10 md:mb-14">
                 <div className="space-y-2">
