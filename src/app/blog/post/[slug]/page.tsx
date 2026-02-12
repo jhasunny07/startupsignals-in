@@ -168,28 +168,57 @@ export default async function PostPage({
           </aside>
 
           {/* Added break-words and overflow-hidden to handle long text/images in PortableText */}
-          <article className="col-span-12 lg:col-span-7 prose prose-slate prose-lg md:prose-xl max-w-none break-words overflow-hidden">
+          <article className="col-span-12 lg:col-span-7 prose prose-slate prose-lg md:prose-xl max-w-none break-words overflow-hidden prose-li:marker:text-indigo-600">
             <PortableText
               value={post.body ?? []}
               components={{
+                // 1. Fix for the "touching" text in the body paragraphs
+                block: {
+                  normal: ({ children }) => (
+                    <p className="leading-relaxed mb-6">{children}</p>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-3xl font-black mt-12 mb-6 leading-tight">
+                      {children}
+                    </h2>
+                  ),
+                },
+                // 2. Fix for the compact bullet points
+                list: {
+                  bullet: ({ children }) => (
+                    <ul className="list-disc ml-6 space-y-4 mb-8">
+                      {children}
+                    </ul>
+                  ),
+                  number: ({ children }) => (
+                    <ol className="list-decimal ml-6 space-y-4 mb-8">
+                      {children}
+                    </ol>
+                  ),
+                },
+                listItem: ({ children }) => (
+                  <li className="pl-2 leading-relaxed">{children}</li>
+                ),
                 types: {
                   image: ({ value }) => {
                     if (!value?.asset?._ref) return null;
-
                     const imageUrl = getImageUrl(value, 1200, 800);
-
-                    // 🔥 Fix: Ensure it's always a string
                     if (!imageUrl || typeof imageUrl !== "string") return null;
 
                     return (
-                      <div className="my-8">
+                      <div className="my-12">
                         <Image
                           src={imageUrl}
                           alt={value?.alt ?? "Post image"}
                           width={1200}
                           height={800}
-                          className="rounded-xl w-full h-auto"
+                          className="rounded-[2rem] shadow-md w-full h-auto border border-slate-100"
                         />
+                        {value.caption && (
+                          <p className="mt-3 text-center text-sm text-slate-400">
+                            {value.caption}
+                          </p>
+                        )}
                       </div>
                     );
                   },
@@ -197,7 +226,6 @@ export default async function PostPage({
               }}
             />
           </article>
-
           <aside className="col-span-12 lg:col-span-3 space-y-8 lg:sticky lg:top-28">
             <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-8 text-white shadow-xl">
               <Megaphone className="h-8 w-8 text-indigo-500 mb-6" />
