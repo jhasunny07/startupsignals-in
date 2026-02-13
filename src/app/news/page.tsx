@@ -11,8 +11,8 @@ export default async function NewsPage() {
 
   return (
     <main className="bg-[#FAFAFA] min-h-screen pb-32">
-      <div className="max-w-7xl mx-auto px-6 pt-24">
-        <h1 className="text-7xl md:text-9xl font-black tracking-tighter text-slate-900 mb-16">
+      <div className="max-w-7xl mx-auto px-6 pt-8">
+        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 mb-5">
           News<span className="text-indigo-600">.</span>
         </h1>
 
@@ -37,7 +37,7 @@ export default async function NewsPage() {
               <span className="bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-sm mb-6 inline-block">
                 Latest Analysis
               </span>
-              <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mb-6">
+              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none mb-6">
                 {featured.title}
               </h2>
               {/* This is now a clean string thanks to pt::text() */}
